@@ -1,0 +1,202 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block active_header_excute_report %}
+<li class="nav-item ">
+    <a class="nav-link active" href="{% url 'home_warehouse' %}">Xử lí biên bản<span class="sr-only">(current)</span></a>
+</li>
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="#">Xử lý biên bản</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Xem bộ hóa đơn bị lập biên bản</li>
+{% endblock %}
+
+{% block body %}
+    <div class="jumbotron">
+        <div class="search-box">
+            <form method="get" action="{% url 'home_warehouse' %}">
+                <div class="row">
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <label for="input_date_from">Từ ngày</label>
+                        <input type="" class="form-control" id="input_date_from" aria-describedby="emailHelp" placeholder="" name="timeStart" value="{{date_from}}">
+                        {% comment %} <input type="date" class="form-control" id="input_date_from" aria-describedby="emailHelp" placeholder="Enter email" name="timeStart"> {% endcomment %}
+                    </div>
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <label for="input_date_to">Đến ngày</label>
+                        <input type="" class="form-control" id="input_date_to" aria-describedby="emailHelp" placeholder="" name="timeEnd" value="{{date_to}}">
+                    </div>
+
+                    {% if list_cus %}
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <label for="exampleCheck2">Đơn vị</label>
+                        <br>
+                        <select class="form-control"  id="select_cus_home" name="selectbranch" data-live-search="{% if list_cus|length > 5 %}true{% else %}false{% endif %}">
+{#                            <option value="{{request.user.cus.id}}" >Chi nhánh {{request.user.cus.name}}</option>#}
+                            {% for cus in list_cus %}
+                                {% if cus.id|stringformat:"i" == cus_chosed %}
+                                    <option value="{{ cus.id }}" selected>{{ cus.store_number }} - {{ cus.name }}</option>
+                                {% else %}
+                                    <option value="{{ cus.id }}">{{ cus.store_number }} - {{ cus.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+                        </select>
+                    </div>
+                    {% endif %}
+
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <button type="submit" class="btn btn-info btn-search-home" style="margin-top: 30px;">Tìm kiếm
+                            <i class="fas fa-search"></i></button>
+                    </div>
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <button class="btn btn-outline-info btn-search-advance" style="margin-top: 30px;" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                            Tìm kiếm nâng cao <i class="fas fa-chevron-down"></i>
+                        </button>
+                    </div>
+                </div>
+            </form>
+            <div class="collapse" id="collapseExample">
+                <div class="card card-body">
+                    <div class="row">
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputBillNumber" placeholder="Số Hóa Đơn">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputReportNumber" placeholder="Số Biên Bản">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputTaxNumber" placeholder="Mã Số Thuế">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputVendorNumber" placeholder="Vendor">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputPONumber" placeholder="Số PO/Tranfer">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputReceiverNumber" placeholder="Số Receiver">
+                        </div>
+{#                        <div class=" col  p-1">#}
+{#                            <div class="form-group">#}
+{#                                <select class="form-control select-type-vendor" name="" >#}
+{#                                    <option value="">Loại Hóa Đơn</option>#}
+{#                                    <option value="0">NCC</option>#}
+{#                                    <option value="1">TTPP</option>#}
+{#                                </select>#}
+{#                            </div>#}
+{#                        </div>#}
+
+                        <div class=" col  p-1">
+                            <div class="form-group">
+                                <select class="form-control select-type-report" name="" >
+                                    <option value="">Trạng Thái Biên Bản</option>
+                                    <option value="N">N – Lập biên bản</option>
+                                    <option value="P">P – Đang xử lý</option>
+                                    <option value="E">E – Kết thúc</option>
+
+                                </select>
+                            </div>
+                        </div>
+                        <div class=" col  p-1">
+                            <div class="form-group">
+                                <select class="form-control select-qa" name="" >
+                                    <option value="">Trạng thái QA</option>
+                                    <option value="1">QA</option>
+                                    <option value="0">Không QA</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class=" col  p-1">
+                            <div class="form-group">
+                                <select class="form-control select-type-product" name="" >
+                                    <option value="">Ngành hàng</option>
+                                    {% for type_product in list_product  %}
+                                        <option value="{{ type_product.id }}">{{ type_product.name }}</option>
+                                    {% endfor %}
+
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="jumbotron">
+        <div class="header-table-content d-flex" style="justify-content: space-between">
+            <h5><i class="fas fa-table"></i> Danh sách bộ hóa đơn đang bị lập biên bản </h5>
+        </div>
+        <hr>
+        <div class="mian-table ">
+            {% block data_table %}
+                <table class="table-bill-warehouse table table-striped table-sm table-bordered">
+                <thead>
+                <tr class="text-center">
+                    <tr class="text-center">
+                    <th>STT</th>
+                    <th>Ký Hiệu-Số HĐ</th>
+                    <th>Số Biên Bản</th>
+                    <th>Mã Số Thuế</th>
+                    <th>Tên Công Ty</th>
+                    <th>Ngày Xuất HĐ</th>
+                    <th>Ngày Tải Lên</th>
+                    <th>Ngày Sửa cuối</th>
+                    <th>Trạng Thái - Mô tả HĐ</th>
+                    <th>Trạng Thái Biên Bản</th>
+                    <th>Mã Vendor</th>
+                    <th>Tổng Tiền</th>
+                    <th>Số PO/Tranfer</th>
+                    <th>Mã Receivers</th>
+                    <th>Ngành Hàng</th>
+                    <th>QA</th>
+                    <th>HĐĐT</th>
+                </tr>
+                </thead>
+                <tbody class="text-center">
+                    <tr>
+                        <th colspan="18"> Không tìm thấy dữ liệu</th>
+{#                        <th>1</th>#}
+{#                        <th>{{ contact.group_bill }}</th>#}
+{#                        <th>{{ contact.status_bill }}</th>#}
+{#                        <th>{{ contact.id }}</th>#}
+{#                        <th>{{ contact }} date</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+{#                        <th>abc</th>#}
+                    </tr>
+                {% for contact in page_obj %}
+                    <tr>
+                        <th>{{ contact.image_name }}</th>
+                        <th>{{ contact.group_bill }}</th>
+                        <th>{{ contact.status_bill }}</th>
+                        <th>{{ contact.id }}</th>
+                        <th>{{ contact }} date</th>
+                        <th>{{ contact.group_bill }}</th>
+                    </tr>
+                    {# Each "contact" is a Contact model object. #}
+
+                {% endfor %}
+                </tbody>
+            </table>
+            {% endblock %}
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block add_js %}
+    <script  src="{% static 'public/js/home_warehouse.js' %}"></script>
+{#    <script  src="{% static 'public/js/home.js' %}"></script>#}
+{% endblock  %}

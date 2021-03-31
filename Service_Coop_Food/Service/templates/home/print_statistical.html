@@ -1,0 +1,104 @@
+{% load static %}
+{% load filter_list_print_report %}
+{% load humanize %}
+
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Xuất Thống kê hóa đơn</title>
+    <link rel="shortcut icon" href="{% static 'public/images/favicon.ico' %}" type="image/x-icon">
+    <link rel="stylesheet" href="{% static 'vendor/bootstrap/css/bootstrap.min.css' %}">
+    <style>
+        @media print{@page {size: landscape}}
+        body{
+            font-size: 14px;
+            font-family: "Times New Roman";
+
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container mt-2 p-0">
+        <div class="row mb-2" style="width: 95%; margin-left: 2%">
+            <button class="btn btn-info btn-print-statistical" style="position: absolute;left: 1400px;top: 50px;"> In thống kê </button>
+            <div class="col-sm-4 p-0">
+                <p class="font-weight-bold mb-2 mt-1">CÔNG TY TNHH SAIGON COOP {{ cus_name }}</p>
+                <p class="font-weight-bold">NGÀNH HÀNG: {{ str_list_product_name }} </p>
+            </div>
+            <div class="text-center col-sm-5 mt-3">
+                <h4 class="font-weight-bold">BẢNG GIAO NHẬN HÓA ĐƠN</h4>
+                <p class="font-weight-bold">Ngày: {% now 'd/m/Y' %} - Lần Thứ: {{ str_batch_end }}</p>
+            </div>
+            <div></div>
+        </div>
+        <div class="">
+            <table class="table table-bordered">
+                <thead style="font-size: 14">
+                    <th class="pb-auto text-center align-middle pr-1 pl-1 ">STT</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1">NGÀY NHẬP</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1">NGÀY HĐ</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1">SỐ HĐ</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1" style="max-width: 100px">VENDOR/MÃ SỐ THUẾ</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1 pt-auto">TÊN NHÀ CUNG CẤP</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1">TIỀN HÀNG</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1">VAT</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1">TIỀN VAT</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1 " style="min-width: 100px">TIỀN THANH TOÁN</th>
+                    <th class="pb-auto text-center align-middle pr-1 pl-1" style="min-width: 100px">GHI CHÚ</th>
+                </thead>
+                <tbody>
+                {% for bill in bills_return %}
+                    <tr>
+                        <td class="p-1 text-center align-middle"> {{ forloop.counter }}</td>
+                        <td class="p-1 text-center align-middle"> {{ date_export }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.0 }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.1 }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.2 }}</td>
+                        <td class="p-1 align-middle " > {{ bill.3 }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.4|intcomma }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.5 }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.6|intcomma }}</td>
+                        <td class="p-1 text-center align-middle"> {{ bill.7|intcomma }}</td>
+                        <td class="p-1 text-center align-middle">  </td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+        <div class="d-flex justify-content-between text-center " style="width: 80%; margin-left: 10%">
+            <div>
+                <p class="font-weight-bold mb-1"> Bên nhận</p>
+                <p class="mt-0"> (Bộ phận kế toán)</p>
+            </div>
+            <div>
+                <p class="font-weight-bold mb-1"> Ngày {% now 'd' %} Thánh {% now 'm' %} Năm {% now 'Y' %}</p>
+                <p class="font-weight-bold mt-0 mb-1"> Bên giao</p>
+                <p class="mt-0"> (Bộ phận kho)</p>
+            </div>
+        </div>
+    </div>
+    <script src="{% static 'vendor/jquery-3.5.1.min.js' %}"></script>
+    <script src="{% static 'vendor/bootstrap/js/bootstrap.min.js' %}"></script>
+    <script>
+        function printBB(){
+            $('.btn-print-statistical').hide()
+            window.print();
+        }
+        $(document).ready(function () {
+            window.onafterprint = function(){
+                $('.btn-print-statistical').show()
+            }
+            window.onbeforeprint = function(){
+                $('.btn-print-statistical').hide()
+            }
+            $('.btn-print-statistical').click(function () {
+                printBB()
+            })
+        })
+    </script>
+</body>
+</html>

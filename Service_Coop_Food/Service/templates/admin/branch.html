@@ -1,0 +1,265 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+{#    <button class="btn btn-outline-info" data-toggle="modal" data-target="#modal_add_cus">Thêm Đơn vị mới <i class="fas fa-plus-square"></i></button>#}
+    <a class="btn btn-outline-info" href="{% url 'admin_branch_add' %}"><i class="fas fa-plus-square"></i> Thêm Đơn vị mới </a>
+{% endblock %}
+
+{% block active_branch %}
+    <a href="{% url 'admin_branch' %}" class="list-group-item list-group-item-action bg-light nav-link-active"><i class="fas fa-code-branch    "></i> Quản lý
+        đơn vị</a>
+{% endblock %}
+
+{% block admin_content %}
+    <div class="box-filter-admin-user">
+        <div class="alert-success">
+            {{ message_sucsess }}
+        </div>
+        <form method="get" action="{% url 'admin_branch' %}">
+            <div class="row box_search">
+                <div class="form-inline col-md-3">
+                  {% comment %} <label for="">Chọn mô hình</label> {% endcomment %}
+                  <select class="selectpicker show-tick" multiple id="select_branch_filter_admin" name="select_site" data-style="btn-info" data-width="100%" data-selected-text-format="count > 1" data-count-selected-text= "Đã chọn {0} đơn vị">
+                        {% for site in list_site %}
+                            {% if site.id in find_site %}
+                                <option value="{{ site.id }}" selected type='number'>{{ site.name }}</option>
+                            {% else %}
+                                <option value="{{ site.id }}" type='number'>{{ site.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select>
+                </div>
+                <div class="col-md-3">
+                    <input type="text" class="form-control" value="{{ name_search }}" placeholder="Nhập tên đơn vị cần tìm ..." name="input_search_branch">
+                </div>
+                <div class="col-md-3">
+                    <button type="" class="btn btn-outline-info"><i class="fa fa-search"> </i> Tìm kiếm </button>
+                </div>
+            </div>
+        </form>
+    </div>
+    <div class="table-content">
+        <table class="table table-striped table-bordered table-sm" style="overflow: scroll">
+            <thead class="thead-dark text-center">
+            <tr>
+                <th scope="col">STT</th>
+                <th scope="col" style="min-width: 300px">Tên đơn vị</th>
+                <th scope="col" style="min-width: 150px">Thuộc mô hình </th>
+{#                <th scope="col" style="min-width: 300px">Địa chỉ</th>#}
+{#                <th scope="col" style="min-width: 300px">Tên công ty</th>#}
+                <th scope="col" style="min-width: 100px">Mã số thuế</th>
+                <th scope="col" style="min-width: 100px">Mã cửa hàng</th>
+{#                <th scope="col" style="min-width: 200px">Email KTT</th>#}
+{#                <th scope="col" style="min-width: 200px">Email HDDT</th>#}
+                <th scope="col" style="">TTPP</th>
+                <th scope="col" style="min-width: 150px">Ngày tạo</th>
+                <th scope="col" style="min-width: 150px">Ngày chỉnh sửa cuối</th>
+                <th scope="col" style="min-width: 100px">Thao tác</th>
+
+            </tr>
+            </thead>
+            <tbody>
+                {% for cus in list_cus %}
+                    <tr class="{{ cus.id }}">
+                        <td  class="stt text-center align-middle">{{ list_cus.start_index|add:forloop.counter0}}</td>
+                        <td  class="td-name align-middle">{{ cus.name }}</td>
+                        <td  class="td-name align-middle">{{ cus.site.name }}</td>
+{#                        <td  class="td-address align-middle">{{ cus.address }}</td>#}
+{#                        <td  class="td-company-name align-middle">{{ cus.company_name }}</td>#}
+                        <td  class="td-tax-number text-center align-middle">{{ cus.tax_number }}</td>
+                        <td  class="td-store-number text-center align-middle">{{ cus.store_number }}</td>
+{#                        <td  class="td-email-ktt align-middle">{{ cus.email_ktt }}</td>#}
+{#                        <td  class="td-email-hddt align-middle">{{ cus.email_hddt }}</td>#}
+                        <td  class="td-name-hddt align-middle text-center">{% if cus.ttpp == 1 %}
+                            <i class="fas fa-check  "></i> {% else %}{% endif %} </td>
+                        <td  class="td-name-hddt text-center align-middle">{{ cus.created_at|date:'d/m/Y H:m:s' }}</td>
+                        <td  class="td-name-hddt text-center align-middle">{{ cus.updated_at|date:'d/m/Y H:m:s' }}</td>
+                        <td class="text-center align-middle">
+{#                            <a  type="button" class="btn-edit-cus btn btn-outline-info" data-cusid = "{{ cus.id }}" title=" Sửa thông tin đơn vị " > <i class="far fa-edit "></i></a>#}
+                            <a  href="{% url 'admin_branch_edit' cus.id %}" class=" btn btn-outline-info"  title=" Sửa thông tin đơn vị " > <i class="far fa-edit "></i></a>
+                        </td>
+                        
+                    </tr>
+                {% empty %}
+                    <tr class="text-center"> <td colspan="13"> Không có kết quả nào được tìm thấy !</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+    <nav aria-label="navigation">
+        <ul class="pagination justify-content-end mb-4">
+            <li class="sum-paginator" >Trang {{ list_cus.number }}/{{ list_cus.paginator.num_pages }} </li>
+            {% if list_cus.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% url_replace request 'page' list_cus.previous_page_number %}">
+                        <i class="fas fa-angle-left"></i>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">
+                        <i class="fas fa-angle-left"></i>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for i in list_cus.paginator.page_range %}
+                {% if list_cus.number == i %}
+                    <li class="page-item active">
+                        <a class="page-link" href="?{% url_replace request 'page' i %}">{{ list_cus.number }}</a>
+                    </li>
+                {% elif i > list_cus.number|add:'-5' and i < list_cus.number|add:'5' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% url_replace request 'page' i %}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if list_cus.paginator.num_pages > list_cus.number|add:'4' %}
+{#                <li><a class="page-link" href="?page={{ page_obj.number|add:'5' }}">&hellip;</a></li>#}
+                <li><a class="page-link" href="?{% url_replace request 'page' list_cus.number|add:'5' %}">&hellip;</a></li>
+            {% endif %}
+
+            {% if list_cus.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% url_replace request 'page' list_cus.next_page_number %}">
+                        <i class="fas fa-angle-right"></i>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">
+                        <i class="fas fa-angle-right"></i>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    {% if messages %}
+    <div class="alert alert-add-success alert-dismissible d-none" >
+        {% for message in messages %}
+            {% if message.tags == 'success' %}{{ message }} {% endif %}
+        {% endfor %}
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function () {
+            $('#select_branch_filter_admin').selectpicker()
+            {#if($('.alert-danger').text().trim()){#}
+            {#    $('#modal_add_cus').modal('show')#}
+            {#}#}
+
+            if($('.alert-success').text().trim()){
+                Swal.fire(
+                    'Thêm mói đơn vị thành công thành công!',
+                    'You clicked the button!',
+                    'success'
+                )
+            }
+
+            if($('.alert-add-success').text() != ''){
+                alertSwalTopRight('success', 'Thêm đơn vị thành công')
+            }
+
+            {#$('.btn-edit-cus').on('click', function () {#}
+            {#    $.ajax({#}
+            {#        url : '{% url 'admin_branch_edit'  %}' ,#}
+            {#        type : 'GET',#}
+            {#        data : {#}
+            {#            'cus_id' : $(this).data('cusid')#}
+            {#        },#}
+            {#        success : function (data) {#}
+            {#            console.log(data.data[0].address)#}
+            {#            $('#modal_edit_cus').modal('show')#}
+            {#            $('.input-edit-name-cus').val(data.data[0].name)#}
+            {#            $('.input-edit-adress-cus').val(data.data[0].address)#}
+            {#            $('.input-edit-company-name-cus').val(data.data[0].company_name)#}
+            {#            $('.input-edit-tax-number-cus').val(data.data[0].tax_number)#}
+            {#            $('.input-edit-gl-number-cus').val(data.data[0].gl_number)#}
+            {#            $('.input-edit-email-ktt-cus').val(data.data[0].email_ktt)#}
+            {#            $('.input-edit-email-hddt-cus').val(data.data[0].email_hddt)#}
+            {#            $('.input-edit-store-number-cus').val(data.data[0].store_number)#}
+            {#            $('.input-edit-description-profile-cus').val(data.data[0].description)#}
+            {#            $('#input-diden-id').val(data.data[0].id)#}
+            {#        },#}
+            {#        error: function (data) {#}
+            {#            Swal.fire({#}
+            {#                icon: 'error',#}
+            {#                title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',#}
+            {#            })#}
+            {#        }#}
+            {##}
+            {#    })#}
+            {#})#}
+
+            {#$('.btn-submit-edit-cus').on('click', function () {#}
+            {#    conf = confirm('Bạn muốn thay đổi thông tin đơn vị này??')#}
+            {#    if(conf == false){#}
+            {#        return false#}
+            {#    }#}
+            {#    form_edit = $('#form_edit_branch')#}
+            {#    form_data_edit = new FormData(document.getElementById('form_edit_branch'))#}
+            {#    $.ajax({#}
+            {#        url : '{% url 'admin_branch_edit'  %}' ,#}
+            {#        type : 'POST',#}
+            {#        data : form_data_edit,#}
+            {#        processData: false,#}
+            {#        contentType: false,#}
+            {#        success : function (data) {#}
+            {#            if (data.message_error){#}
+            {#                html_error = data.message_error.join('<br>')#}
+            {#                $('.div-message-erro-edit-cus').html(html_error)#}
+            {#            }#}
+            {#            else {#}
+            {#                $('#modal_edit_cus').modal('hide')#}
+            {#                new_data = data.new_data[0]#}
+            {##}
+            {#                $("table ."+new_data.id+" .td-name").text(new_data.name)#}
+            {#                $("table ."+new_data.id+" .td-address").text(new_data.address)#}
+            {#                $("table ."+new_data.id+" .td-company-name").text(new_data.company_name)#}
+            {#                $("table ."+new_data.id+" .td-tax-number").text(new_data.tax_number)#}
+            {#                $("table ."+new_data.id+" .td-store-number").text(new_data.store_number)#}
+            {#                $("table ."+new_data.id+" .td-email-ktt").text(new_data.email_ktt)#}
+            {#                $("table ."+new_data.id+" .td-email-hddt").text(new_data.email_hddt )#}
+            {#                Swal.fire({#}
+            {#                    icon: 'success',#}
+            {#                    title: 'Thay đổi thông tin đơn vị thành công',#}
+            {#                    showConfirmButton: true,#}
+            {#                })#}
+            {#            }#}
+            {#        },#}
+            {#        error: function (data) {#}
+            {#            Swal.fire({#}
+            {#                icon: 'error',#}
+            {#                title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',#}
+            {#            })#}
+            {#        }#}
+            {##}
+            {#    })#}
+            {#})#}
+        })
+
+    </script>
+{% endblock %}

@@ -1,0 +1,512 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block add_css %}
+    <style>
+    .viewer-container{
+        background-color: white;
+    }
+
+    .image-casorel {
+        position: relative;
+        min-height: 900px;
+
+    }
+    .viewer-canvas{
+        border: 1px dashed #a5a79d;
+    }
+    .btn-watch-pdf {
+        position: absolute;
+        right: 10px;
+    }
+    .viewer-navbar{
+        height: 150px;
+    }
+    .viewer-list {
+        height: 100%;
+    }
+
+    .viewer-list li {
+        height: 100%;
+        width: 100px;
+    }
+
+    .viewer-list li img {
+        height: 100%;
+    }
+    .viewer-active{
+        border: 1px blue solid;
+    }
+    .form-group{
+        {#margin: 0px !important;#}
+        {#padding: 0px !important;#}
+    }
+    .box-function-top{
+        border: 1px solid #0c0c0c;
+        padding: 5px;
+        margin-bottom: 10px;
+        border-radius: 10px;
+    }
+    .box-detail-bill{
+        {#border: 1px solid black;#}
+        {#padding: 10px;#}
+        {#border-radius: 10px;#}
+    }
+    table, th, td {
+          border: 1px solid #5e5f59!important;
+          border-collapse: collapse!important;
+    }
+    form table input {
+        border: none;
+        outline: none;
+        width: 100%;
+    }
+    .invoice-list-info{
+        padding: 10px;
+        border: solid 1px #5e5f59;
+        margin-bottom: 10px;
+    }
+
+    .table-responsive {
+        max-height: 650px!important;
+    }
+    @media (max-width: 1500px) {
+        .image-casorel {
+            min-height: 800px;
+        }
+
+        .table-responsive {
+            max-height: 650px!important;
+        }
+    }
+
+    @media (max-width: 1400px) {
+        .image-casorel {
+            min-height: 800px;
+        }
+
+        .table-responsive {
+            max-height: 650px!important;
+        }
+    }
+    @media (max-width: 800px) {
+        .image-casorel {
+            min-height: 500px;
+        }
+
+        .table-responsive {
+            max-height: auto;
+        }
+    }
+
+    </style>
+
+    {% block add_css_detail %}
+    {% endblock %}
+{% endblock %}
+
+
+{% block active_header_invoice_list %}
+    <li class="nav-item active">
+        <a class="nav-link" href="{{ request.user.session.url_old_search_invoice_list }}">Bảng Kê <span class="sr-only">(current)</span></a>
+    </li>
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{{ request.session.url_old_search_invoice_list }}">Bảng kê</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Chi tiết bảng kê </li>
+    <div class="ml-auto">
+        <h6 class="pt-1">{{cus_name}} - {{ list_invoice.upload_date|date:'d/m/Y' }}</h6>
+    </div>
+{% endblock %}
+
+{% block body %}
+    <div class="jumbotron">
+        {% if messages %}
+            {% for message in messages %}
+{#                {% if message.tags == 'success' %}#}
+{#                    <div class="alert-success">{{ message }}</div>#}
+{#                {% endif %}#}
+                <li{% if message.tags %} class="alert-{{ message.tags }} d-none"{% endif %}>{{ message }}</li>
+            {% endfor %}
+        {% endif %}
+        <div class="row" >
+
+            <div class="image-casorel col-xl-6 col-lg-6 col-md-12">
+                <!-- <div style="position: relative; bottom: -100px">
+                    <div style="position:absolute;z-index: 1; bottom: 60px; right: 50px; ">
+                       <button class="btn btn-info ml-2 btn-watch-pdf-receiver" title="Xem file RECEIVER" data-message="dowloadrece" data-group="{{ bill.group_hd }}" data-check="{{ bill.src_receiver }}"><i class="fas fa-file-upload"></i> </button>
+                    </div>
+                </div> -->
+                <div style="height: 100%">
+                    <ul id="images" class="d-none">
+                        {% block detail_list_image_casorel %}
+                            <li>
+                                <img src="/media/{{ list_invoice.src_img }}" alt="Picture 1">
+
+                            </li>
+                        {% endblock %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-6 col-md-12">
+                {% block detail_list_btn_menu %}
+                <div class="d-flex justify-content-end list-btn-menu mb-2" >
+{#                    <button class="btn btn-info ml-2 btn-watch-pdf-receiver" title="Xem file RECEIVER" data-message="dowloadrece" data-group="{{ bill.group_hd }}" data-check="{{ bill.src_receiver }}"><i class="fas fa-file-upload"></i> Xem File  Receiver</button>#}
+                </div>
+                {% endblock %}
+
+
+                {% block detail_box_bill_detail %}
+                <div class="box-detail-bill">
+                    <form class="form-change-invoice-list" id="form_change_invoice-list" method="post" action="{% url 'invoice_list_detail' cus_id list_invoice.id  %}">
+                        {% csrf_token %}
+                        <div class="invoice-list-info">
+                            <div class="d-flex justify-content-between mb-3">
+                                {% if 'Sửa bảng kê' in request.session.list_per   %}
+                                    <div>
+                                    <button type="button" class="btn btn-info btn-edit-invoice-list"><i class="fas fa-edit"></i> Sửa bảng kê</button>
+                                    <button type="button" class="btn btn-success d-none btn-save-invoice-list" ><i class="fas fa-save"></i> Lưu thay đổi</button>
+                                    <button type="reset" class="btn btn-danger d-none btn-reset-invoice-list ml-3"><i class="fas fa-undo"></i> Hủy thay đổi</button>
+                                    </div>
+                                {% endif %}
+                                 <div class="" >
+                                    <button type="button" class="btn btn-info ml-2 btn-watch-pdf-receiver" title="Xem file RECEIVER" data-message="dowloadrece" data-group="{{ bill.group_hd }}" data-check="{{ bill.src_receiver }}"><i class="fas fa-file-upload"></i> Xem File  Receiver</button>
+                                </div>
+
+                            </div>
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <label for="select-industry">Số bảng kê: <span
+                                            class="font-weight-bold span-info-detail">{% if list_invoice.bk_number %}
+                                        {{ list_invoice.bk_number }}{% endif %}</span></label>
+                                    <input type="text" class="form-control d-none" id="input-bk-number"
+                                           name="input-bk-number" disabled value="{% if list_invoice.bk_number %}{{ list_invoice.bk_number }}{% endif %}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="select-type-bk">Loại bảng kê : <span
+                                            class="font-weight-bold span-info-detail">
+                                        {% for type_bk in list_type_bks %}
+                                            {% if type_bk.id|stringformat:"i" == list_invoice.type_bk %}
+                                                {{ type_bk.name }}
+                                            {% endif %}
+                                        {% endfor %}
+                                    </span></label>
+                                    <select class="form-control d-none" disabled name="select-type-bk">
+                                        {% for type_bk in list_type_bks %}
+                                            {% if type_bk.id|stringformat:"i" == list_invoice.type_bk %}
+                                                <option value="{{ type_bk.id }}" selected>{{ type_bk.name }}</option>
+                                            {% else %}
+                                                <option value="{{ type_bk.id }}">{{ type_bk.name }}</option>
+                                            {% endif %}
+                                        {% endfor %}
+                                    </select>
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <label for="input-tax-number">Số PO: <span
+                                            class="font-weight-bold span-info-detail">{% if list_invoice.po_number %}
+                                        {{ list_invoice.po_number }}{% endif %}</span></label>
+                                    <input type="text" class="form-control d-none" id="input-po-number"
+                                           name="input-po-number" disabled value="{% if list_invoice.po_number %}{{ list_invoice.po_number }}{% endif %}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="select-industry">Số Receiver: <span
+                                            class="font-weight-bold span-info-detail">{% if list_invoice.receiver_number %}
+                                        {{ list_invoice.receiver_number }}{% endif %}</span></label>
+                                    <input type="text" class="form-control d-none" id="input-receiver-number"
+                                           name="input-receiver-number" disabled value="{% if list_invoice.receiver_number %}{{ list_invoice.receiver_number }}{% endif %}">
+                                </div>
+                            </div>
+                            <div class="form-row">
+                                <div class="col-md-6">
+                                    <label for="input-tax-number">Mã Vendor: <span
+                                            class="font-weight-bold span-info-detail">{% if list_invoice.vendor_number %}
+                                        {{ list_invoice.vendor_number }}{% endif %}</span></label>
+                                    <input type="text" class="form-control d-none" id="input-vendor-number"
+                                           name="input-vendor-number" disabled value="{% if list_invoice.vendor_number %}{{ list_invoice.vendor_number }}{% endif %}">
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="input-tax-number">Ngày tải lên: <span
+                                            class="font-weight-bold span-info-detail">{{ list_invoice.upload_date|date:'d/m/Y'  }} {{ list_invoice.upload_date|time:"H:i:s" }}</span></label>
+                                    <input type="text" class="form-control d-none" id="" name="-tax-number" disabled
+                                           value="{{ list_invoice.upload_date|date:'d/m/Y h:m:s' }}" readonly>
+                                    {#                                <input type="text" class="form-control d-none datepicker"  id="" name="-tax-number"  value="{{ list_invoice.upload_date|date:'d/m/Y' }}" >#}
+                                </div>
+                            </div>
+
+                        </div>
+                        <div class="table-responsive" >
+                            <table class="table table-bordered table-sm table-result-check-luoi " style="overflow-y: scroll;">
+                                <thead class="text-center">
+                                <tr>
+                                    <th>No.</th>
+                                    <th>Mã SKU</th>
+                                    <th>Số Lượng</th>
+                                    <th>Đơn giá</th>
+                                </tr>
+                                </thead>
+                                <tbody class="text-center">
+                                    {% for line in list_result_checks %}
+                                        <tr >
+                                            <td>{{ forloop.counter }}</td>
+                                            <td>
+                                                <input type="text" class="text-center" value="{{ line.0 }}" name="input-result_check_luoi[]" disabled>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="text-center only-input-float-or-qa" value="{{ line.1|intcomma }}" name="input-result_check_luoi[]" disabled >
+                                            </td>
+                                            <td>
+                                                <input type="text" class="text-center only-input-float-or-qa" value="{{ line.2|intcomma }}" name="input-result_check_luoi[]" disabled>
+                                            </td>
+                                        </tr>
+                                    {% empty %}
+                                        <tr >
+                                            <td>1</td>
+                                            <td>
+                                                <input type="text" class="text-center" value="" name="input-result_check_luoi[]" disabled>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="text-center only-input-float-or-qa" value="" name="input-result_check_luoi[]" disabled>
+                                            </td>
+                                            <td>
+                                                <input type="text" class="text-center only-input-float-or-qa" value="" name="input-result_check_luoi[]" disabled>
+                                            </td>
+
+                                        </tr>
+                                    {% endfor %}
+                                </tbody>
+                            </table>
+                            <div class="d-flex justify-content-end  div-add-line mb-2">
+                                <button type="button" class="btn btn-success d-none" title="Thêm một dòng mới">+</button>
+                                <button type="button" class="btn btn-danger ml-1 d-none" title="Xóa dòng cuối">-</button>
+                            </div>
+                            <div class="d-flex justify-content-end mb-3 mr-3">
+                                Tổng số lượng :  <span id="span_summ_invoice-list" class="font-weight-bold"></span>
+                            </div>
+
+                        </div>
+                        <div class="d-flex justify-content-end">
+                            <button v-show="!is_edit" type="button" class="btn btn-info btn-wath-log" > Xem lịch sử bảng kê </button>
+                        </div>
+{#                        <div class="d-flex justify-content-end">#}
+{#                            {% if 'Chỉnh sửa bộ hóa đơn' in request.session.list_per   %}#}
+{#                                <button type="button" class="btn btn-info btn-edit-invoice-list"><i class="fas fa-edit"></i> Sửa bảng kê</button>#}
+{#                                <button type="button" class="btn btn-success d-none btn-save-invoice-list" ><i class="fas fa-save"></i> Lưu thay đổi</button>#}
+{#                                <button type="reset" class="btn btn-danger d-none btn-reset-invoice-list ml-3"><i class="fas fa-undo"></i> Hủy thay đổi</button>#}
+{#                            {% endif %}#}
+{#                            #}
+{#                        </div>#}
+{#                        <button type="submit">SUBMIT</button>#}
+                    </form>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+
+    <!-- Modal show log -->
+    <div class="modal fade" id="modal_show_log" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title text-center">Xem lịch sử thay đổi bảng kê</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div>
+                        <ul class="content_log_change_bk">
+                        </ul>
+                    </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info" data-dismiss="modal">Đóng</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function () {
+            var html_old_tbody_result_check = $('.table-result-check-luoi tbody').html()
+            $('#images').viewer({
+                    inline: true,
+                    title: false,
+                    toolbar: {
+                        zoomIn: 4,
+                        zoomOut: 4,
+                        oneToOne: 4,
+                        prev: false,
+                        next: false,
+                        rotateLeft: 4,
+                        rotateRight: 4,
+                    },
+                    movable: true,
+                    navbar : false,
+                    tooltip: false,
+                    fullscreen: false,
+                }
+            );
+
+            $('.image-casorel').on('click', '.viewer-list  li img', function (e) {
+                url = '/detail/' + '{{ id_cus }}' + '/' + '{{ id }}' + '/' + $(this).data('index')
+                window.location.href = url
+                e.preventDefault()
+                {% comment %} console.log($(this).data('index')) {% endcomment %}
+
+            })
+
+            //Edit
+            $('.btn-edit-invoice-list').on('click', function(){
+                $('.form-change-invoice-list input, .form-change-invoice-list select').removeAttr('disabled')
+                $('.btn-save-invoice-list').toggleClass('d-none')
+                $('.btn-reset-invoice-list').toggleClass('d-none')
+                $('.btn-edit-invoice-list').addClass('d-none')
+                $('.form-change-invoice-list .span-info-detail').addClass('d-none')
+                $('.div-add-line button').toggleClass('d-none')
+                $('.form-change-invoice-list .invoice-list-info input, .form-change-invoice-list select').toggleClass('d-none')
+                $('.form-change-invoice-list table input').each(function (element) {
+                    $(this).val($(this).val().replaceAll(',',''))
+                })
+            })
+
+            //reset
+            $('.btn-reset-invoice-list').on('click', function(){
+                $('.form-change-invoice-list input, .form-change-invoice-list select').attr('disabled', 'disabled')
+                $('.btn-save-invoice-list').toggleClass('d-none')
+                $('.btn-reset-invoice-list').toggleClass('d-none')
+                $('.btn-edit-invoice-list').toggleClass('d-none')
+                $('.div-add-line button').toggleClass('d-none')
+                $('.form-change-invoice-list .span-info-detail').toggleClass('d-none')
+                $('.form-change-invoice-list .invoice-list-info input, .form-change-invoice-list select').toggleClass('d-none')
+                $('.table-result-check-luoi tbody').html(html_old_tbody_result_check)
+            })
+
+            ///add-remove line
+            $('.div-add-line .btn-success').on('click', function () {
+                console.log('{{ is_po }}')
+                number_stt_last = parseInt($('.table-result-check-luoi').find('tbody tr:last td:first').text())
+                if(number_stt_last){
+                    number_stt_last+=1
+                }
+                else{
+                    number_stt_last = 1
+                }
+                $('.table-result-check-luoi').find('tbody').append('<tr><td>'+number_stt_last+'</td>\n' +
+                        '<td>\n' +
+                        '    <input type="text" class="text-center" value="" name="input-result_check_luoi[]" >\n' +
+                        '</td>\n' +
+                        '<td>\n' +
+                        '    <input type="text" class="text-center" value="" name="input-result_check_luoi[]" >\n' +
+                        '</td>\n' +
+                        '<td><input type="text" class="text-center" value="" name="input-result_check_luoi[]" >\n' +
+                        '</td></tr>')
+            })
+
+            $('.div-add-line .btn-danger').on('click', function () {
+                console.log($('.table-result-check-luoi').find('tbody tr').length)
+                if($('.table-result-check-luoi').find('tbody tr').length > 1){
+                    $('.table-result-check-luoi').find('tbody tr:last').remove()
+                }else{
+                    alert('Không thể xóa hàng đầu')
+                }
+
+            })
+
+            $('.btn-save-invoice-list').on('click', function(){
+                Swal.fire({
+                    title: 'Bạn có chắc chắn?',
+                    text: "Muốn chỉnh sửa thông tin bảng kê này!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Có , Tôi muốn!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        $(".form-change-invoice-list").submit()
+                    }
+                })
+            })
+
+
+            if($('.alert-success').text()){
+                alertSwalTopRight('success', 'Chỉnh sửa thành công!!')
+            }
+
+            $('.form-change-invoice-list input, .form-change-invoice-list span').each(function () {
+                if($(this).val().match(/\[QA\]/g) || $(this).text().match(/\[QA\]/g)){
+                    $(this).css('background', 'yellow')
+                }
+            })
+
+
+            $('.btn-watch-pdf-receiver').on('click', function () {
+                if ('{{ list_invoice.src_receiver }}' != ''){
+                window.open('/media/{{ list_invoice.src_receiver }}','blank_')
+                }else {
+                    alertSwalTopRight('info', 'Bộ hóa đơn này chưa tải lên file receiver!!')
+                }
+            })
+
+            $('#span_summ_invoice-list').text(function () {
+                let sum = 0
+                $('table tbody tr td:nth-child(3)').each(function (i) {
+                    let temp = $(this).find('input').val()
+                    try{
+                        sum += parseFloat( (temp != '' && temp !='[QA]') ? temp : 0 )
+                    }
+                    catch (e) {
+                        console.log(e)
+                    }
+                });
+                return sum
+            })
+
+            $('.only-input-float-or-qa').on('input' , function () {
+                this.value = this.value.replace(/[^0-9\[QA\].]/g, '').replace(/(\..*)\./g, '$1')
+             })
+
+            //Show log change bk
+            $('.btn-wath-log').on('click', function () {
+                let id = '{{ list_invoice.id  }}';
+                let id_cus = '{{ cus_id }}';
+                $.ajax({
+                    url : `/ajax/detail_bill/get_log_bk/${id_cus}/${id}`,
+                    type : 'GET',
+                    data : {
+
+                    },
+                    success: function (data) {
+                        if (jQuery.isEmptyObject(data)){
+                            alertSwalTopRight('info', "Chưa có lịch sử thay đổi.")
+                        }
+                        else {
+                            let html_log_edit = '';
+                            data.log_change_bk.forEach((log) =>{
+                                html_log_edit+= `<li> Thời gian: ${new Date(log[1]).toLocaleString('vi')}| User: ${log[0]}| Trường thay đổi: ${log[2]} </li>`
+                            });
+                            $('.content_log_change_bk').html(html_log_edit);
+                            $('#modal_show_log').modal({
+                                 backdrop: 'static',
+                                keyboard: false,
+                                show: true
+                            });
+                            $("#modal_show_log").draggable({
+                                handle: ".modal-header"
+                            });
+                        }
+                    }
+                })
+            })
+        })
+
+    </script>
+    {% block add_js_detail %}
+
+    {% endblock %}
+{% endblock %}

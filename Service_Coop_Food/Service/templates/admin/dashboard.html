@@ -1,0 +1,114 @@
+{% extends 'admin/base_admin.html' %}
+
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+        .dashboard-num {
+            {#width: 80%;#}
+            {#border: 2px #1c7430 solid;#}
+        }
+        .dashboard-num {
+            padding: 10px;
+            width: 90%;
+            height: 100px;
+            border: 2px #17a2b8 solid;
+        }
+        .jumbotron{
+            background: #f8f9fa;
+            padding: 2rem 1rem;
+        }
+        
+        @media only screen and (max-width: 784px) {
+             .dashboard-num {
+                 text-align: center;
+                 width: 100%;
+                padding: 10px;
+                 height: auto;
+                 margin-top: 10px;
+                border: 2px #17a2b8 solid;
+            }
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+{#    <button class="btn btn-outline-info" data-toggle="modal" data-target="#modal_add_user">Thêm người dùng mới <i class="fas fa-user-plus"></i></button>#}
+{#    <button class="btn btn-outline-info">Thêm người dùng bằng file Excel <i class="fas fa-folder-plus"></i></button>#}
+{#    <button class="btn btn-outline-info">Xuất người dùng bằng file Excel <i class="far fa-file-excel"></i></button>#}
+{% endblock %}
+
+{% block active_dashboard %}
+    <a href="{% url 'admin' %}" class="list-group-item list-group-item-action bg-light nav-link-active"><i class="fas fa-tachometer-alt "></i>  Tổng quan </a>
+{% endblock %}
+
+
+{% block admin_content %}
+    <h4 class="m-3">Tổng quan hệ thống</h4>
+    <div class="jumbotron">
+        <div class="row" style="width: 90%; margin-left: 5%">
+            <div class="col-xl-3 " >
+                <a href="{% url 'admin_site' %}" class="text-decoration-none text-dark">
+                <div class="row dashboard-num">
+                    <div class="col-xl-4">
+                        <i class="fas fa-city   fa-2x text-warning "></i>
+                    </div>
+                    <div class="col-xl-8">
+                        <p class="text-warning font-weight-bold mb-2" style="font-size: 20px">{{ num_site }}</p>
+                        <p>Mô hình </p>
+                    </div>
+                </div>
+                </a>
+            </div>
+            <div class="col-xl-3 " >
+                <a href="{% url 'admin_branch' %}" class="text-decoration-none text-dark">
+                <div class="row dashboard-num">
+                    <div class="col-xl-4">
+                        <i class="fas fa-code-branch fa-2x text-info"></i>
+                    </div>
+                    <div class="col-xl-8">
+                        <p class="text-info font-weight-bold mb-2" style="font-size: 20px">{{ num_cus }}</p>
+                        <p>Đơn vị</p>
+                    </div>
+                </div>
+                </a>
+            </div>
+            <div class="col-xl-3 " >
+                <a href="{% url 'admin_user' %}" class="text-decoration-none text-dark">
+                <div class="row dashboard-num">
+                    <div class="col-xl-4">
+                        <i class="fas fa-user fa-2x text-success"></i>
+                    </div>
+                    <div class="col-xl-8">
+                        <p class="text-success font-weight-bold mb-2" style="font-size: 20px">{{ num_user }}</p>
+                        <p>Người dùng</p>
+                    </div>
+                </div>
+                </a>
+            </div>
+            <div class="col-xl-3 " >
+                <a href="{% url 'admin_role' %}" class="text-decoration-none text-dark">
+                <div class="row dashboard-num">
+                    <div class="col-xl-4">
+{#                        <i class="fas fa-object-ungroup fa-2x text-danger"></i>#}
+                        <i class="fas fa-user-tag  fa-2x text-danger  "></i>
+                    </div>
+                    <div class="col-xl-8">
+                        <p class="text-danger font-weight-bold mb-2" style="font-size: 20px">{{ num_role }}</p>
+                        <p>Vai trò</p>
+                    </div>
+                </div>
+                </a>
+            </div>
+        </div>
+    </div>
+{% endblock %}

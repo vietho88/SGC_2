@@ -1,0 +1,129 @@
+/*!
+ * Start Bootstrap - Simple Sidebar (https://startbootstrap.com/templates/simple-sidebar)
+ * Copyright 2013-2020 Start Bootstrap
+ * Licensed under MIT (https://github.com/StartBootstrap/startbootstrap-simple-sidebar/blob/master/LICENSE)
+ */
+
+ #wrapper {
+    overflow-x: hidden;
+ }
+
+#sidebar-wrapper {
+  min-height: 100vh;
+  margin-left: -15rem;
+  -webkit-transition: margin .25s ease-out;
+  -moz-transition: margin .25s ease-out;
+  -o-transition: margin .25s ease-out;
+  transition: margin .25s ease-out;
+}
+
+#sidebar-wrapper .sidebar-heading {
+  padding: 0.875rem 1.25rem;
+  font-size: 1.2rem;
+}
+
+#sidebar-wrapper .list-group {
+  width: 15rem;
+}
+
+#page-content-wrapper {
+  min-width: 100vw;
+}
+
+#wrapper.toggled #sidebar-wrapper {
+  margin-left: 0;
+}
+
+@media (min-width: 768px) {
+  #sidebar-wrapper {
+    margin-left: 0;
+  }
+
+  #page-content-wrapper {
+    min-width: 0;
+    width: 100%;
+  }
+
+  #wrapper.toggled #sidebar-wrapper {
+    margin-left: -15rem;
+  }
+}
+
+/* custom */
+header .navbar{
+  background: #dc3545  !important;
+}
+.nav-link-active{
+  background: #dc3545  !important;
+  color: white!important;
+  border-left: #17a2b8  5px solid !important;
+}
+
+#sidebar-wrapper ul li a {
+  padding:10px 30px;
+  /* font-size: 1.1em; */
+  display: block;
+  text-decoration: none;
+  color: #000;
+}
+
+#sidebar-wrapper ul li a:hover {
+  color: #7386D5;
+  background: #fff;
+}
+
+#sidebar-wrapper ul li.active>a,
+a[aria-expanded="true"] {
+  color: #fff;
+  background: #dc3545;
+}
+
+.dropdown-toggle::after {
+  display: block;
+  position: absolute;
+  top: 50%;
+  right: 20px;
+  transform: translateY(-50%);
+}
+
+ul ul a {
+  font-size: 0.9em !important;
+  padding-left: 30px !important;
+  background: #6d7fcc;
+}
+
+/*show tổng số page paginator*/
+.sum-paginator{
+  position: relative;
+  left: -10px; font-size: 13px;
+  margin-top: auto;
+  margin-bottom: auto;
+}
+
+.page-item.active .page-link{
+  background-color : #17a2b8 !important;
+  border-color :#17a2b8 !important;
+  color: white !important;
+}
+
+.page-link{
+  color : #17a2b8 !important;
+}
+
+table {
+  font-size: 15px;
+}
+
+.table-content{
+  overflow-x: auto;
+}
+
+.custom-sweetalert-right{
+    width: 400px!important;
+    height: 150px;
+    font-size: 12px!important;
+}
+
+.bootstrap-select .dropdown-toggle{
+    border: 1px solid #ced4da !important;
+}

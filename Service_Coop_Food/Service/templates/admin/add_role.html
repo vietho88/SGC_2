@@ -1,0 +1,398 @@
+{% extends 'admin/base_admin.html' %}
+
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+
+        input[type=checkbox] {
+          vertical-align: middle !important;
+        }
+        .tree {
+            list-style-type: none;
+        }
+
+        .tree ul {
+            list-style-type: none;
+            {#display: none;#}
+            margin: 4px auto;
+            margin-left: 6px;
+            border-left: 1px dashed #dfdfdf;
+        }
+
+
+        .tree li {
+            cursor: pointer;
+            vertical-align: middle;
+            background: #fff;
+        }
+
+        .tree li:first-child {
+            border-radius: 3px 3px 0 0;
+        }
+
+        .tree li:last-child {
+            border-radius: 0 0 3px 3px;
+        }
+
+        .tree .active,
+        .active li {
+            background: #efefef;
+        }
+
+        .tree label {
+            cursor: pointer;
+        }
+
+        .tree input[type=checkbox] {
+            margin: -2px 6px 0 0px;
+        }
+
+        .has > label {
+            color: #000;
+        }
+
+        .tree .total {
+            color: #e13300;
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+    <a class="btn btn-outline-info" href="{% url 'admin_role' %}"> <i class="fas fa-user-tag   "></i> Xem tất cả vai trò</a>
+{% endblock %}
+
+{% block active_role %}
+    <a href="{% url 'admin_role' %}" class="list-group-item list-group-item-action bg-light nav-link-active" ><i class="fas fa-user-tag    "></i> Quản lý vai trò </a>
+{% endblock %}
+
+
+{% block admin_content %}
+    <div class="box-filter-admin-user">
+    </div>
+
+    {% comment %} Fail         {% endcomment %}
+    {% if messages %}
+    <div class="alert alert-danger alert-dismissible" >
+        <button type="button" class="close" data-dismiss="alert">×</button>
+        {% for message in messages %}
+            {{ message }}
+        {% endfor %}
+    </div>
+    {% endif %}
+
+
+
+    <form method="POST" action="{% url 'admin_role_add'  %}">
+    {% csrf_token %}
+    <div class="">
+        {% comment %} <h3>vai trò {{ role.name }}</h3> {% endcomment %}
+        <div class="container-fluid">
+            <h4>Thêm vai trò mới</h4>
+            <div class="form-group">
+                <label for="">Chọn mô hình <span class="text-danger">*</span></label>
+                <select class="form-control"  name="select_site" data-style="btn-success">
+                    {% for site in list_site %}
+                        {% if site.id in find_site %}
+                            <option value="{{ site.id }}" selected type='number'>{{ site.name }}</option>
+                        {% else %}
+                            <option value="{{ site.id }}" type='number'>{{ site.name }}</option>
+                        {% endif %}
+                    {% endfor %}
+                </select>
+            </div>
+            <div class="form-group">
+              <label for="">Tên vai trò <span class="text-danger">*</span></label>
+              <input type="text" name="name_role"  class="form-control" placeholder="Nhập tên vai trò"  required>
+            </div>
+            <div class="form-group ">
+                <label for="" class="">Chọn quyền <span class="text-danger">*</span> </label>
+                <ul class="tree">
+                    <li class="has">
+                        <input type="checkbox" name="domain[]" value="Hóa đơn">
+                        <label>Hóa đơn <span class="total"></span></label>
+                        <ul>
+                            {% for per in list_all_permission %}
+                                {% if per.type == 1 %}
+                                    <li class="">
+                                        <input type="checkbox" name="select_per_edit_role[]" value="{{ per.id }}">
+                                        <label>{{ per.name }} </label>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="has">
+                        <input type="checkbox" name="domain[]" value="Hóa đơn">
+                        <label>Bảng kê <span class="total"></span></label>
+                        <ul>
+                            {% for per in list_all_permission %}
+                                {% if per.type == 2 %}
+                                    <li class="">
+                                        <input type="checkbox" name="select_per_edit_role[]" value="{{ per.id }}">
+                                        <label>{{ per.name }} </label>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="has">
+                        <input type="checkbox" name="domain[]" value="Hóa đơn">
+                        <label>Biên bản <span class="total"></span></label>
+                        <ul>
+                            {% for per in list_all_permission %}
+                                {% if per.type == 3 %}
+                                    <li class="">
+                                        <input type="checkbox" name="select_per_edit_role[]" value="{{ per.id }}">
+                                        <label>{{ per.name }} </label>
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </li>
+                </ul>
+{#                <div class="">#}
+{#                    <select class="selectpicker show-tick" data-live-search="true" id="select_per_edit_role" name="select_per_edit_role[]" data-style="btn-info" multiple data-width="100%" required data-actions-box="true">#}
+{#                    {% for per in list_all_permission %}#}
+{#                        {% if per.id in role_permission_old %}#}
+{#                            <option value="{{ per.id }}" selected>{{ per.name }}</option>#}
+{#                        {% else %}#}
+{#                            <option value="{{ per.id }}">{{ per.name }}</option>#}
+{#                        {% endif %}#}
+{#                    {% endfor %}#}
+{#                </select>#}
+                </div>
+            </div>
+            <div >
+                <table class="table table-bordered table-sm mt-4">
+                    <thead>
+                    <tr>
+                        <th></th>
+                        <th>Chuyển sang O</th>
+                        <th>Chuyển sang S</th>
+                        <th>Chuyển sang W</th>
+                        <th>Chuyển sang A</th>
+                        <th>Chuyển sang C</th>
+                        <th>Chuyển sang H</th>
+                        <th>Chuyển sang R</th>
+                        <th>Chuyển sang M</th>
+                        <th>Chuyển sang V</th>
+
+                    </tr>
+                    </thead>
+                    <tbody class="text-center">
+                    <tr>
+                        <th>Từ trạng thái O</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'O' %}
+                                <td><input type="checkbox"  name="checkbox_change_o[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái S</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'S' %}
+                                <td><input type="checkbox"  name="checkbox_change_s[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái W</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'W' %}
+                                <td><input type="checkbox"  name="checkbox_change_w[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái A</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'A' %}
+                                <td><input type="checkbox"  name="checkbox_change_a[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái C</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'C' %}
+                                <td><input type="checkbox"  name="checkbox_change_c[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái H</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'H' %}
+                                <td><input type="checkbox"  name="checkbox_change_h[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái R</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'R' %}
+                                <td><input type="checkbox"  name="checkbox_change_r[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái M</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'M' %}
+                                <td><input type="checkbox"  name="checkbox_change_m[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+
+                    <tr>
+                        <th>Từ trạng thái V</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'V' %}
+                                <td><input type="checkbox"  name="checkbox_change_v[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+
+                    </tbody>
+                </table>
+                <div class="d-flex justify-content-start mt-5 mb-5">
+                    <button class="btn btn-info " type="submit"><i class="fas fa-save"></i> Lưu</button>
+                    <button class="btn btn-danger ml-1 " type="reset"><i class="fas fa-undo"></i> Hủy </button>
+                </div>
+            </div>
+{#            Chọn  quyền:#}
+{#            <ul class="tree">#}
+{#                <li class="has">#}
+{#                    <input type="checkbox" name="domain[]" value="Hóa đơn">#}
+{#                    <label>Hóa đơn <span class="total"></span></label>#}
+{#                    <ul>#}
+{#                        {% for per in list_all_permission %}#}
+{#                            {% if per.type == 1 %}#}
+{#                                <li class="">#}
+{#                                    <input type="checkbox" name="select_per_edit_role[]" value="{{ per.id }}">#}
+{#                                    <label>{{ per.name }} </label>#}
+{#                                </li>#}
+{#                            {% endif %}#}
+{#                        {% endfor %}#}
+{#                    </ul>#}
+{#                </li>#}
+{#                <li class="has">#}
+{#                    <input type="checkbox" name="domain[]" value="Hóa đơn">#}
+{#                    <label>Bảng kê <span class="total"></span></label>#}
+{#                    <ul>#}
+{#                        {% for per in list_all_permission %}#}
+{#                            {% if per.type == 2 %}#}
+{#                                <li class="">#}
+{#                                    <input type="checkbox" name="select_per_edit_role[]" value="{{ per.id }}">#}
+{#                                    <label>{{ per.name }} </label>#}
+{#                                </li>#}
+{#                            {% endif %}#}
+{#                        {% endfor %}#}
+{#                    </ul>#}
+{#                </li>#}
+{#                <li class="has">#}
+{#                    <input type="checkbox" name="domain[]" value="Hóa đơn">#}
+{#                    <label>Biên bản <span class="total"></span></label>#}
+{#                    <ul>#}
+{#                        {% for per in list_all_permission %}#}
+{#                            {% if per.type == 3 %}#}
+{#                                <li class="">#}
+{#                                    <input type="checkbox" name="select_per_edit_role[]" value="{{ per.id }}">#}
+{#                                    <label>{{ per.name }} </label>#}
+{#                                </li>#}
+{#                            {% endif %}#}
+{#                        {% endfor %}#}
+{#                    </ul>#}
+{#                </li>#}
+{#            </ul>#}
+        </div>
+    </div>
+    </form>
+
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function(){
+            $("table td").click(function () {
+                var checkBoxes = $(this).find('input[type="checkbox"]')
+                if (checkBoxes.prop("checked") == true){
+                    checkBoxes.prop('checked', false);
+                }else{
+                    checkBoxes.prop("checked", true)
+                }
+            })
+
+            $("table td input[type=\"checkbox\"]").click(function (event) {
+                    event.stopPropagation()
+                }
+            )
+           /* $('form select, form input').attr('disabled','readonly')
+
+            $('.btn-edit').on('click', function(){
+                $('form select, form input').removeAttr('disabled')
+                $(':button[type=reset]').toggleClass('d-none')
+                $(':button[type=submit]').toggleClass('d-none')
+                $('.btn-edit').toggleClass('d-none')
+                $('#select_per_edit_role').selectpicker('refresh')
+            })
+
+            $(':button[type=reset]').click(function(){
+                $('form select, form input').attr('disabled','disabled')
+                $(':button[type=reset]').toggleClass('d-none')
+                $(':button[type=submit]').toggleClass('d-none')
+                $('.btn-edit').toggleClass('d-none')
+            })
+            */
+
+            $(document).on('click', '.tree label', function (e) {
+                $(this).next('ul').fadeToggle();
+                e.stopPropagation();
+            });
+
+            $(document).on('change', '.tree input[type=checkbox]', function (e) {
+                $(this).siblings('ul').find("input[type='checkbox']").prop('checked', this.checked);
+                $(this).closest('ul').find('input[type="checkbox"]').each(function () {
+                    if($(this).is(':checked')){
+                        $(this).parentsUntil('.tree').children("input[type='checkbox']").prop('checked', this.checked);
+                        return false
+                    }
+                    $(this).parentsUntil('.tree').children("input[type='checkbox']").prop('checked', false);
+
+                })
+                e.stopPropagation();
+            });
+
+
+        })
+    </script>
+{% endblock %}

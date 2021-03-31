@@ -1,0 +1,51 @@
+{% extends 'admin/base_admin.html' %}
+
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+    <a class="btn btn-outline-info" href="{% url 'admin_type_product_add' %}">Thêm loại ngành hàng mới <i class="fas fa-function    "></i></a>
+{% endblock %}
+
+{% block active_type_product %}
+    <a href="{% url 'admin_type_product' %}" class="list-group-item list-group-item-action bg-light nav-link-active"><i class="fas fa-city    "></i> Quản lý các loại ngành hàng</a>
+{% endblock %}
+
+
+{% block admin_content %}
+    <div class="table-content">
+        <div class="card">
+            <div class="card-header">
+                <h5 class="card-title">Delete Book #{{object.id}}</h5>
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+                    <div class="alert alert-warning" role="alert">
+                        Are you sure you want to delete <strong>{{ object }}</strong> ?
+                    </div>
+                    <button type="submit" class="btn btn-danger">Delete</button>
+                </form>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal -->
+
+{% endblock %}
+
+{% block add_js %}
+{% endblock %}

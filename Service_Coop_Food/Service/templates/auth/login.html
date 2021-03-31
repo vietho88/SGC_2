@@ -1,0 +1,391 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+    <style>
+        @import url("https://fonts.googleapis.com/css?family=Montserrat:100,200,300,400,500,700");
+        /* global vars */
+        /* reset & base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        html,
+        body {
+            padding: 0;
+            margin: 0;
+            overflow-x: hidden;
+        }
+
+        html {
+            font-size: 62.5%;
+        }
+
+        body {
+            color: #fff;
+            font-family: "Montserrat", sans-serif;
+            font-weight: 400;
+            font-size: 1.4rem;
+            text-rendering: optimizeLegibility;
+            -webkit-font-smoothing: antialiased;
+        }
+
+        body::-webkit-scrollbar {
+            width: 0.5rem;
+        }
+
+        body::-webkit-scrollbar-track {
+            background: #512da8;
+        }
+
+        body::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.25);
+        }
+
+        body::-webkit-scrollbar-thumb:hover {
+            background: rgba(255, 255, 255, 0.5);
+        }
+
+        /* Overlay */
+        .overlay {
+            position: relative;
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            height: 100%;
+            min-height: 100vh;
+            {#background-image: linear-gradient(135deg, #fdfff8 20%, #fff9ff);#}
+            background-image: url("{% static 'public/images/bg_login.png' %}");
+            -webkit-box-align: center;
+            align-items: center;
+            overflow: hidden;
+            background-size: cover;
+        }
+
+        /* login form */
+        .login {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            -webkit-box-orient: vertical;
+            -webkit-box-direction: normal;
+            flex-direction: column;
+            margin: 0 auto;
+        }
+
+        .login .login__inner {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            flex-wrap: wrap;
+            align-content: center;
+            padding: 2rem 2rem;
+            border: 2px white solid;
+            border-radius: 25px;
+            background: brown;
+            {#opacity: 50%;#}
+
+        }
+
+        .login .login__inner .login__header {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            margin-bottom: 3rem;
+        }
+
+        .login .login__inner .login__header .login__title {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+        }
+
+        .login .login__inner .login__header .login__title h1.login__heading {
+            font-size: 3.5 rem;
+            font-weight: 100;
+            color: #fff;
+            text-align: center;
+            margin: 5rem 0 2.5rem 0;
+            width: 100%;
+        }
+
+        .login .login__inner .login__content {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .login .login__inner .login__content .login__form {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            -webkit-box-pack: center;
+            justify-content: center;
+        }
+
+        .login .login__inner .login__content .login__form .form {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            flex-wrap: wrap;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group {
+            position: relative;
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            margin-bottom: 2rem;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__icon {
+            position: absolute;
+            top: 0;
+            left: 1rem;
+            display: -webkit-box;
+            display: flex;
+            width: 2rem;
+            height: 100%;
+            fill: #fff;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__input {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            padding: 2rem 4rem;
+            background: transparent;
+            font-size: 1.75rem;
+            letter-spacing: 0.125rem;
+            color: #fff;
+            border: none;
+            outline: none;
+            box-shadow: none;
+            border-bottom: 0.1rem solid rgba(255, 255, 255, 0.3);
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__input:focus + .form__input-after {
+            width: 100%;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__input:focus ~ .form__label, .login .login__inner .login__content .login__form .form .form__group .form__input:valid ~ .form__label {
+            -webkit-transform: translate3d(4rem, 0, 0);
+            transform: translate3d(4rem, 0, 0);
+            font-size: 1.25rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__input:-webkit-autofill, .login .login__inner .login__content .login__form .form .form__group .form__input:-webkit-autofill:hover, .login .login__inner .login__content .login__form .form .form__group .form__input:-webkit-autofill:focus, .login .login__inner .login__content .login__form .form .form__group .form__input:-webkit-autofill:active {
+            -webkit-transition: 0s 50000s ease all;
+            transition: 0s 50000s ease all;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__input-after {
+            position: absolute;
+            left: 0;
+            bottom: 0;
+            z-index: 99;
+            display: -webkit-box;
+            display: flex;
+            width: 0;
+            height: 0.1rem;
+            background-color: #fff;
+            -webkit-transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+            transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__label {
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: -webkit-box;
+            display: flex;
+            width: calc(100% - 8rem);
+            height: 2rem;
+            font-size: 1.75rem;
+            -webkit-transform: translate3d(4rem, 2rem, 0);
+            transform: translate3d(4rem, 2rem, 0);
+            will-change: transform;
+            -webkit-transform-style: preserve-3d;
+            transform-style: preserve-3d;
+            -webkit-transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+            transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+            pointer-events: none;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__btn {
+            position: relative;
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            -webkit-box-pack: center;
+            justify-content: center;
+            padding: 2rem 4rem;
+            cursor: pointer;
+            border: 0.1rem solid #fff;
+            border-radius: 0.25rem;
+            background: transparent;
+            box-shadow: none;
+            outline: none;
+            text-transform: uppercase;
+            -webkit-transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+            transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__btn::after {
+            content: " ";
+            position: absolute;
+            top: 0;
+            left: 0;
+            display: -webkit-box;
+            display: flex;
+            width: 0;
+            height: 100%;
+            background-color: #fff;
+            -webkit-transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+            transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__btn:hover {
+            color: #522ea9;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__btn:hover::after {
+            width: 100%;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__btn:hover .form__btn-text {
+            color: #522ea9;
+            -webkit-transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+            transition: 0.25s cubic-bezier(0.694, 0.048, 0.335, 1) all;
+        }
+
+        .login .login__inner .login__content .login__form .form .form__group .form__btn .form__btn-text {
+            position: relative;
+            z-index: 99;
+            font-size: 1.75rem;
+            letter-spacing: 0.25rem;
+            color: #fff;
+        }
+
+        .login .login__inner .login__footer {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            margin-top: 2.5rem;
+        }
+
+        .login .login__inner .login__footer .login__subtitle {
+            display: -webkit-box;
+            display: flex;
+            width: 100%;
+            -webkit-box-pack: center;
+            justify-content: center;
+        }
+
+        .login .login__inner .login__footer .login__subtitle h3.login__subheading {
+            font-size: 1.9rem;
+            font-weight: 200;
+            margin: 5rem 0 2.5rem 0;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        /* 768px */
+        @media (min-width: 48rem) {
+            .login {
+                width: 75%;
+            }
+        }
+
+        /* 992px */
+        @media (min-width: 62rem) {
+            .login {
+                width: 50%;
+            }
+        }
+
+        /* 1200px */
+        @media (min-width: 75rem) {
+            .login {
+                width: 33%;
+            }
+
+            .login .login__inner {
+                max-width: 50rem;
+                margin: 0 auto;
+            }
+        }
+
+    </style>
+</head>
+<body>
+<div class="overlay">
+    <div class="login">
+        <div class="login__inner">
+            <div style="display: flex; justify-content: center; width: 100%">
+                <img style="text-align: center; border-radius: 50%; border: 1px #d4d4d4 solid;" src="https://sgc.qlhd.vn/static/public/images/logo_01.png">
+
+            </div>
+            <div class="login__header">
+                <div class="login__title">
+                    <h1 class="login__heading" style="font-weight: 400">ĐĂNG NHẬP</h1>
+                </div>
+            </div>
+            <span style="color: white; text-align: center; margin: 20px 10px; font-size: 15px"> {% if message %}{{ message }}{% endif %}</span>
+            <div class="login__content">
+                <div class="login__form">
+                    <form action="/login" class="form" method="post">
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ request.GET.next }}" />
+                        <div class="form__group">
+                            <svg class="form__icon" viewBox="0 0 20 20">
+							<path d="M12.075,10.812c1.358-0.853,2.242-2.507,2.242-4.037c0-2.181-1.795-4.618-4.198-4.618S5.921,4.594,5.921,6.775c0,1.53,0.884,3.185,2.242,4.037c-3.222,0.865-5.6,3.807-5.6,7.298c0,0.23,0.189,0.42,0.42,0.42h14.273c0.23,0,0.42-0.189,0.42-0.42C17.676,14.619,15.297,11.677,12.075,10.812 M6.761,6.775c0-2.162,1.773-3.778,3.358-3.778s3.359,1.616,3.359,3.778c0,2.162-1.774,3.778-3.359,3.778S6.761,8.937,6.761,6.775 M3.415,17.69c0.218-3.51,3.142-6.297,6.704-6.297c3.562,0,6.486,2.787,6.705,6.297H3.415z"></path>
+						    </svg>
+
+                            <input class="form__input" type="text" name="username" required value="{% if old_user %}{{ old_user }}{% endif %}">
+                            <div class="form__input-after"></div>
+                            <label class="form__label" for="email">Tên tài khoản</label>
+                        </div>
+                        <div class="form__group">
+                            <svg class="form__icon" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+                                <path d="M376 192H188v-48c0-18.1 7.1-35.1 20-48s29.9-20 48-20 35.1 7.1 48 20 20 29.9 20 48c0 7.7 6.3 14 14 14s14-6.3 14-14c0-53.2-43.9-96.7-97.3-96-52.7.7-94.7 44.5-94.7 97.3V192h-24c-22 0-40 18-40 40v192c0 22 18 40 40 40h240c22 0 40-18 40-40V232c0-22-18-40-40-40zM270 316.8v68.8c0 7.5-5.8 14-13.3 14.4-8 .4-14.7-6-14.7-14v-69.2c-11.5-5.6-19.1-17.8-17.9-31.7 1.4-15.5 14.1-27.9 29.6-29 18.7-1.3 34.3 13.5 34.3 31.9 0 12.7-7.3 23.6-18 28.8z"/>
+                            </svg>
+                            <input class="form__input" type="password" required name="password">
+                            <div class="form__input-after"></div>
+                            <label class="form__label" for="email">Mật khẩu</label>
+                        </div>
+                        <div class="form__group">
+                            <button class="form__btn" type="submit">
+                                <span class="form__btn-text">Đăng nhập</span>
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+            <div class="login__footer">
+                <div class="login__subtitle">
+                    <h3 class="login__subheading">COPYRIGHT SAIGON CO.OP  <script>   document.write(new Date().getFullYear());
+  </script></h3>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script>
+        document.querySelector('input').addEventListener("input", function () {
+            console.log("vvv")
+        });
+        {#strCookie = document.cookie#}
+		{#if(strCookie.search("timeStart") != -1 ){#}
+		{#	document.cookie.split(";").forEach(function(c) { document.cookie = c.replace(/^ +/, "").replace(/=.*/, "=;expires=" + new Date().toUTCString() + ";path=/"); });#}
+		{#}#}
+    </script>
+</div>
+</body>
+</html>

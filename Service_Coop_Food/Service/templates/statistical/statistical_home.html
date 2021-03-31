@@ -1,0 +1,107 @@
+{% extends 'base.html' %}
+
+
+{% block active_header_statistical %}
+     <li class="nav-item active">
+        <a class="nav-link" href="{% url 'statistical' %}">Thống kê <span class="sr-only">(current)</span></a>
+    </li>
+{% endblock %}
+
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="/home/bill">Thống kê</a></li>
+    <li class="breadcrumb-item active">Xem thống kê</li>
+{% endblock %}
+
+{% block body %}
+    <div class="jumbotron">
+        <div class="search-box">
+            <form method="get" action="{% url 'statistical' %}">
+                <div class="row">
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <label for="input_date_from">Từ ngày</label>
+                        <input type="" class="form-control" id="input_date_from" aria-describedby="emailHelp" placeholder="" name="timeStart" value="{{date_from}}">
+                        {% comment %} <input type="date" class="form-control" id="input_date_from" aria-describedby="emailHelp" placeholder="Enter email" name="timeStart"> {% endcomment %}
+                    </div>
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <label for="input_date_to">Đến ngày</label>
+                        <input type="" class="form-control" id="input_date_to" aria-describedby="emailHelp" placeholder="" name="timeEnd" value="{{date_to}}">
+                    </div>
+
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <label for="exampleCheck2">Đơn vị</label>
+                        <br>
+                        <select class="form-group selectpicker"  id="select_cus_home" name="selectbranch" data-width = '100%'  data-live-search="{% if list_cus|length > 5 %}true{% else %}false{% endif %}">
+{#                            <option value="{{request.user.cus.id}}" >Chi nhánh {{request.user.cus.name}}</option>#}
+                            {% for cus in list_cus %}
+                                {% if cus.id == cus_chosed %}
+                                    <option value="{{ cus.id }}" selected>{{ cus.store_number }} - {{ cus.name }}</option>
+                                {% else %}
+                                    <option value="{{ cus.id }}">{{ cus.store_number }} - {{ cus.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+                        </select>
+                    </div>
+
+                    <div class="form-group col-xl-2 col-lg-2">
+                        <button type="submit" class="btn btn-info " style="margin-top: 30px;"><i class="fas fa-search"></i> Thống kê
+                            </button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <div class="jumbotron">
+        <h6 class="ml-5">{% if total %} Tổng số hóa đơn: {{ total }} {% else %} Thời gian này không có dữ liệu để thống kê {% endif %}</h6>
+        <div id="donutchart" style="width: 900px; height: 500px;"></div>
+    </div>
+
+{% endblock %}
+
+{% block add_js %}
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <script type="text/javascript">
+        $('#input_date_from, #input_date_to').datepicker({
+            todayBtn: "linked",
+            language: "vi",
+            autoclose: true
+        })
+
+        google.charts.load("current", {packages: ["corechart"]});
+        google.charts.setOnLoadCallback(drawChart);
+
+        function drawChart() {
+            var total = {{ total }}
+
+
+            var data = {{ data|safe }}
+            for (var i = 0; i < data.length; i++) {
+              data[i][0] = data[i][0] + ": " +
+                        data[i][1] + " hóa đơn ";
+            }
+            var data = google.visualization.arrayToDataTable(data);
+
+            var options = {
+                {#title: 'Sơ đồ tổng quan các trạng thái',#}
+                pieHole: 0.4,
+            };
+
+
+            if (data.getNumberOfRows() == 0) {
+                data.addRow([new Date(), 0])
+                options.series = {
+                    0: {
+                        color: 'transparent'
+                    }
+                }
+            }
+
+
+            var chart = new google.visualization.PieChart(document.getElementById('donutchart'));
+            chart.draw(data, options);
+        }
+    </script>
+
+{% endblock %}

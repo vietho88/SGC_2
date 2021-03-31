@@ -1,0 +1,101 @@
+body{
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    background-color: #d4d8dd;
+}
+
+header .navbar{
+    background-color: #dc3545 !important;
+}
+
+.jumbotron{
+    padding: 1rem 1rem;
+    background-color: white;
+}
+
+.roud-waiting-load-page {
+    z-index: 1;
+    position: fixed;
+    background: #f6f9ea;
+    opacity: 0.2;
+    height: 1000px;
+    width: 100%;
+}
+
+.waiting-load-page {
+    z-index: 1;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin-right: -50%;
+    transform: translate(-50%, -50%);
+
+}
+
+.waiting-load-page .container {
+    height: inherit;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+}
+
+.spinner {
+    display: inline-block;
+}
+
+.spinner:after {
+    content: " ";
+    display: block;
+    width: 80px;
+    height: 80px;
+    border-radius: 50%;
+    border: 10px solid;
+    border-color: transparent #15a78a transparent;
+    animation: loading 1s linear infinite;
+}
+
+@keyframes loading {
+    0% {
+        transform: rotate(0deg);
+    }
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.custom-sweetalert-right{
+    width: 400px!important;
+    height: 150px;
+    font-size: 12px!important;
+}
+
+.bootstrap-select .dropdown-toggle{
+    border: 1px solid #ced4da !important;
+}
+
+
+/*!*Custom *!*/
+/*.bootstrap-select.show-tick .dropdown-menu .selected span.check-mark {*/
+/*     position: absolute !important;*/
+/*    display: inline-block !important;*/
+/*    !* right: 15px; *!*/
+/*    !* top: 5px; *!*/
+/*}*/
+
+/*.bootstrap-select.show-tick .dropdown-menu li a span.text {*/
+/*    margin-left: 34px;*/
+/*}*/
+
+
+.col-max-width {
+    max-width: 440px;
+    word-wrap: break-word;
+}
+
+
+table.dataTable thead>tr>th.sorting_asc, table.dataTable thead>tr>th.sorting_desc, table.dataTable thead>tr>th.sorting, table.dataTable thead>tr>td.sorting_asc, table.dataTable thead>tr>td.sorting_desc, table.dataTable thead>tr>td.sorting {
+    padding-right: 0.75rem;
+}

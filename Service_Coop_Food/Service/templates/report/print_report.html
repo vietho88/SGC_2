@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>In biên bản</title>
+    {% load static %}
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="shortcut icon" href="{% static 'public/images/favicon.ico' %}" type="image/x-icon">
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.4.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.16.0/umd/popper.min.js"></script>
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"></script>
+{#    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.11.2/css/all.css" integrity="sha256-46qynGAkLSFpVbEBog43gvNhfrOj+BmwXdxFgVK/Kvc=" crossorigin="anonymous" />#}
+
+
+    <style type="text/css">
+		.bienban {
+			margin-left: 10px;
+		}
+
+		th {
+			border: 1px solid black;
+		}
+
+		.mau {
+			background: #CFCFCF;
+		}
+
+		.dam {
+			font-weight: bold;
+		}
+
+		h5 {
+			font-weight: bold;
+		}
+
+		body {
+  			font-family: "Times New Roman", Times, serif;
+		}
+
+		.center {
+            position: relative;
+        }
+
+        .border-left-large {
+            border-left: 2px #343a40 solid !important ;
+        }
+        .border-right-large {
+            border-right: 2px #343a40 solid !important ;
+        }
+        .border-top-large {
+            border-top: 2px #343a40 solid !important ;
+        }
+        .border-bo-large {
+            border-bottom: 2px #343a40 solid !important ;
+        }
+.center p {
+    margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+}
+        {#@media only screen and (max-width: 1280px) {#}
+        {#    #btnPrint {#}
+        {#        right: 0px;#}
+        {#        top: 250px;#}
+        {#    }#}
+        {#}#}
+	</style>
+
+</head>
+<br>
+<body >
+    <div class="" style="position: fixed; right: 100px">
+        <button class="btn btn-info " style="  " onclick="printBB()" id="btnPrint"> <i class="fas fa-print"></i>  In Biên Bản </button>
+
+    </div>
+
+    <div  style="width: 1000px; margin: 0 auto" >
+        <div class="row">
+        	<div class="col-2 border border-dark text-center border-left-large border-top-large"  >
+        		<div class="row" >
+        			<img style="margin: 10% auto; width: 90%" src="{% static 'public/images/logo_Saigon_CoOp.jpg' %}">
+        		</div>
+
+        	</div>
+       		<div class="col-10 border border-dark border-top-large border-right-large">
+        		<div class="row">
+        			<div class="col-10 text-center dam " style="margin-top: 7%;font-family: Times New Roman;font-size:20px;">
+        				LIÊN HIỆP HTX TM TPHCM (SAIGON CO.OP)<br>
+						BIÊN BẢN HÀNG THIẾU/KHÔNG ĐẠT CHẤT LƯỢNG
+					</div>
+
+        			<div class="col-2">
+        				<div class="row dam text-center" style="color: red;">
+        					<div style="margin: 0 auto; font-size: 150%">{% if print_report.report_number|add:'0' < 400000 %}
+        					    {{ print_report.report_number }}
+        					{% else %}  {{ detail_print_report.id|add:400000 }} {% endif %}</div>
+        				</div>
+
+        				<div class="row">
+                            <div  id="qrcode" style="width:150px; height:150px; margin-top:15px;"></div>
+{#        					 <img style="width: 90%;margin: 0 auto;" src="{% static  link_qr_show %}" alt="image">#}
+        				</div>
+
+        			</div>
+        		</div>
+        	</div>
+        </div>
+
+        <div class="row mau dam">
+			<div class="col-7 border border-dark dam border-left-large">SỐ THAM CHIẾU CỦA BIÊN BẢN GIAO HÀNG</div>
+			<div class="col-5 border border-dark text-center border-right-large"> NGÀY LẬP BIÊN BẢN (DD/MM/YYYY)</div>
+		</div>
+
+        <div class="row  " style="height: 50px">
+            <div class="col-7 border border-dark border-left-large"></div>
+            <div class="col-5 border border-dark text-center border-right-large pt-2 font-weight-bold">{{ detail_print_report.created_at|date:'d/m/Y' }}</div>
+        </div>
+{#		<div class="row">#}
+{#			<div class="col-7 border border-dark"></div>#}
+{#			<div class="col-5 border border-dark text-center dam">{{ dateCreate }}</div>#}
+{#		</div>#}
+
+		<div class="row mau dam">
+			<div class="col-7 border border-dark border-left-large">PHẦN ĐƠN VỊ LẬP BIÊN BẢN GHI NHẬN (KHOANH TRÒN)</div>
+			<div class="col-5 border border-dark text-center border-right-large">ĐƠN VỊ LẬP BIÊN BẢN</div>
+
+		</div>
+
+		<div class="row">
+			<div class="col-7 border border-dark border-left-large" style="font-size: 14px;">
+				1. Thiếu số kiện.<br>
+				2. Thiếu hàng bên trong.<br>
+				<span class="bienban">a. Kiện hàng còn nguyên đai, nguyên niêm phong.</span><br>
+				<span class="bienban">b. Kiện hàng không còn nguyên đai, nguyên niêm phong.</span><br>
+				3. Kiện hàng bị hư hỏng.<br>
+				<span class="bienban">a. Hàng bên trong bị hư hỏng</span><br>
+				<span class="bienban">b. Hàng bên trong không bị hư hỏng</span><br>
+				4. Hàng bị hư hỏng.<br>
+				<span class="bienban">a. Kiện hàng còn nguyên đai, nguyên niêm phong.</span><br>
+				<span class="bienban">b. Kiện hàng không còn nguyên đai, nguyên niêm phong.</span><br>
+				5. Khiếu nại khác.
+			</div>
+			<div class="col-5 text-center dam">
+				<div class="row" style="height: 45%">
+					<div class=" col-12 border border-dark border-right-large" style="padding-top: 10%">{{ print_report.name }}</div>
+				</div>
+				<div class="row" style="height: 10%">
+					<div class=" col-12 border border-dark mau border-right-large">ĐỊA CHỈ</div>
+				</div>
+				<div class="row" style="height: 45.2%">
+					<div class=" col-12 border border-dark border-right-large" style="padding-top: 10%" >{{ print_report.address }}</div>
+				</div>
+			</div>
+		</div>
+
+		<div class="row dam mau text-center">
+			<div class="col-2">
+				<div class="row" style="height: 100%">
+					<div class="col-4 border border-dark border-left-large pr-1 pl-1" style="padding-top: 7%">STT</div>
+					<div class="col-8 border border-dark" style="padding-top: 7%">SỐ HĐ</div>
+				</div>
+			</div>
+
+
+			<div class="col-4">
+				<div class="row" style="height: 50%">
+					<div class="col border border-dark">MÔ TẢ HÀNG HÓA</div>
+				</div>
+				<div class="row" style="height: 50%">
+					<div class="col-4 border border-dark p-0">SKU</div>
+					<div class="col-8 border border-dark p-0">TÊN HÀNG</div>
+				</div>
+			</div>
+			<div class="col-1 border border-dark">SỐ LƯỢNG</div>
+
+			<div class="col-5">
+				<div class="row" style="height: 100%" >
+					<div class="col-6 border border-dark" style="">TÌNH TRẠNG HÀNG HÓA</div>
+					<div class="col-6 border border-dark border-right-large p-0">HƯỚNG XỬ LÝ CỦA ĐƠN VỊ NHẬN BIÊN BẢN</div>
+				</div>
+			</div>
+		</div>
+
+	    {% for data in result_check_print_report %}
+            <div class="row text-center" style="word-wrap: break-word">
+                <div class="col-2">
+                    <div class="row" style="height: 100%">
+                        <div class="col-4 border border-dark  border-left-large p-1">{{ forloop.counter }}</div>
+                        <div class="col-8 border border-dark text-center p-0">{{ data.bill_number }}</div>
+                    </div>
+                </div>
+                <div class="col-4">
+                    <div class="row" style="height: 100%">
+                        <div class="col-4 border border-dark text-center p-0">{{ data.sku }}</div>
+                        <div class="col-8 border border-dark p-0">{{ data.name }}</div>
+                    </div>
+                </div>
+                <div class="col-1 border border-dark">{{ data.quanty }}</div>
+                <div class="col-5">
+                    <div class="row" style="height: 100%">
+                        <div class="col-6 border border-dark p-0">{{ data.unit }}</div>
+                        <div class="col-6 border border-dark border-right-large p-0">{{ data.status }}</div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+
+        {% if result_check_print_report|length < 10 %}
+            {% with ''|center:10 as range %}
+                {% for _ in range %}
+                    {% if forloop.counter > result_check_print_report|length %}
+                        <div class="row text-center" style="word-wrap: break-word">
+                            <div class="col-2">
+                                <div class="row" style="height: 100%">
+                                    <div class="col-4 border border-dark  border-left-large">
+                                        {{ forloop.counter }}</div>
+                                    <div class="col-8 border border-dark "><p></p></div>
+                                </div>
+                            </div>
+                            <div class="col-4">
+                                <div class="row" style="height: 100%">
+                                    <div class="col-4 border border-dark "></div>
+                                    <div class="col-8 border border-dark"></div>
+                                </div>
+                            </div>
+                            <div class="col-1 border border-dark"></div>
+                            <div class="col-5">
+                                <div class="row" style="height: 100%">
+                                    <div class="col-6 border border-dark center"><p></p></div>
+                                    <div class="col-6 border border-dark border-right-large"></div>
+                                </div>
+                            </div>
+
+                        </div>
+                    {% endif %}
+                {% endfor %}
+            {% endwith %}
+        {% endif %}
+			<div id="dulieu" style="font-size: 15px;"></div>
+
+
+		<div class="row dam border border-dark border-left-large border-right-large" style="height: 80px">ĐỀ NGHỊ CỦA ĐƠN VỊ LẬP BIÊN BẢN
+            <p>{{ detail_print_report.comment_created }}</p>
+        </div>
+
+		<div class="row mau dam">
+			<div class="col-5 border border-dark text-center border-left-large">ĐẠI DIỆN ĐƠN VỊ LẬP BIÊN BẢN</div>
+			<div class="col-3 border border-dark text-center">ĐẠI DIỆN NHÀ VẬN CHUYỂN</div>
+			<div class="col-4 border border-dark text-center border-right-large">ĐẠI DIỆN ĐƠN VỊ XỬ LÝ BIÊN BẢN</div>
+		</div>
+		<div class="row" style="height: 80px">
+			<div class="col-5 border border-dark border-left-large">
+				<div class="row" style="height: 70%"></div>
+				<div class="row">Ngày nhận BB:</div>
+
+			</div>
+			<div class="col-3 border border-dark">
+				<div class="row" style="height: 70%">Số xe: {{ detail_print_report.drive_number }}</div>
+				<div class="row">Ngày nhận BB: </div>
+
+			</div>
+			<div class="col-4 border border-dark border-right-large">
+				<div class="row" style="height: 70%"></div>
+				<div class="row">Ngày nhận BB:</div>
+			</div>
+		</div>
+		<div class="row mau dam ">
+			<div class="col border border-dark text-center border-left-large border-right-large">GHI CHÚ</div>
+		</div>
+		<div class="row">
+			<div class="col border border-dark border-left-large border-right-large">
+				Nguyên tắc giao nhận: Hàng hóa được giao, nhận trên nguyên tắc NGUYÊN ĐAI, NGUYÊN KIỆN. Bộ phận giao hàng
+				không chịu trách nhiệm về số lượng, chủng loại, chất lượng cũng như các tính chất khác của hàng hóa.
+			</div>
+		</div>
+		<div class="row border border-dark mau dam border-left-large border-right-large">PHẦN ĐƠN VỊ XỬ LÝ BIÊN BẢN</div>
+		<div class="row mau text-center dam">
+			<div class="col-4 border border-dark border-left-large">CHỨNG CHỈ ĐÍNH KÈM</div>
+			<div class="col-4 border border-dark">ĐẠI DIỆN ĐƠN VỊ XỬ LÝ BIÊN BẢN</div>
+			<div class="col-4 border border-dark border-right-large">ĐẠI DIỆN ĐƠN VỊ LẬP BIÊN BẢN</div>
+		</div>
+		<div class="row">
+			<div class="col-4" style="font-size: 13px;">
+				<div class="row border border-dark border-left-large">
+					<div class="col">1. Thông báo gửi hàng:</div>
+				</div>
+				<div class="row border border-dark border-left-large">
+					<div class="col">2. Hóa đơn NCC:</div>
+				</div>
+				<div class="row border border-dark border-left-large">
+					<div class="col">3. Đơn đặt hàng (PO):</div>
+				</div>
+				<div class="row border border-dark border-left-large">
+					<div class="col">4.Hóa đơn SGC:</div>
+				</div>
+			</div>
+			<div class="col-4 border border-dark"></div>
+			<div class="col-4 border border-dark border-right-large" ></div>
+		</div>
+		<div class="row" style="font-size: 13px;">
+			<div class="col-4 border border-dark border-left-large border-bo-large" >5. Khác</div>
+			<div class="col-4 border border-dark border-bo-large">Ngày BB được xử lý:</div>
+			<div class="col-4 border border-dark border-bo-large border-right-large">Ngày nhận lại BB xử lý:</div>
+		</div>
+        <br>
+    </div>
+    <div class="d-flex justify-content-between " style="position: relative; bottom: 0px; width: 95%;margin-left: 2.5%" >
+            <p>BM-234.BDALOG</p>
+            <p>Lần ban hành: 01 </p>
+            <p>Trang 1/ 1</p>
+    </div>
+            <script defer src="{% static 'vendor/qr_code/qrcode.min.js' %}" type="text/javascript"></script>
+    <script>
+        function printBB(){
+            $('#btnPrint').hide()
+            window.print();
+        }
+        $(document).ready(function () {
+            window.onafterprint = function(){
+                $('#btnPrint').show()
+                $('.space').show()
+                $('.space2').show()
+            }
+            window.onbeforeprint = function(){
+                $('#btnPrint').hide()
+                $('.space').hide()
+                $('.space2').hide()
+            }
+            var qrcode = new QRCode(document.getElementById("qrcode"), {
+                    width : 120,
+                    height : 120
+                });
+            qrcode.makeCode("{{ value_qr }}");
+        })
+    </script>
+</body>
+</html>

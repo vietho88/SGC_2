@@ -1,0 +1,370 @@
+{% extends 'base.html' %}
+{% load humanize %}
+{% block add_css %}
+    <style>
+    .viewer-container{
+        background-color: white;
+    }
+
+    .image-casorel {
+        position: relative;
+        min-height: 900px;
+
+    }
+
+    .btn-watch-pdf {
+        position: absolute;
+        right: 10px;
+    }
+    .viewer-navbar{
+        height: 100px;
+    }
+    .viewer-canvas{
+        border: 1px dashed #a5a79d;
+    }
+
+    .viewer-list {
+        height: 100%;
+    }
+
+    .viewer-list li {
+        height: 100%;
+        width: 70px;
+    }
+
+    .viewer-list li img {
+        height: 100%;
+    }
+    .viewer-active{
+        border: 1px blue solid;
+    }
+    .form-group{
+        {#margin: 0px !important;#}
+        {#padding: 0px !important;#}
+    }
+    table, th, td {
+          border: 1px solid #5e5f59!important;
+          border-collapse: collapse!important;
+    }
+    form table input {
+        border: none;
+        outline: none;
+        width: 100%;
+    }
+    .image-casorel-all{
+        min-height: 900px;
+    }
+    @media (max-width: 1500px) {
+            .image-casorel-all {
+                min-height: 800px;
+            }
+        }
+
+        @media (max-width: 1400px) {
+            .image-casorel-all {
+                min-height: 650px;
+            }
+        }
+        @media (max-width: 800px) {
+            .image-casorel-all {
+                max-height: auto;
+            }
+        }
+    </style>
+
+    {% block add_css_detail %}
+    {% endblock %}
+{% endblock %}
+{% block active_header_excute_report %}
+<li class="nav-item ">
+    <a class="nav-link active" href="#">Xử lý biên bản<span class="sr-only">(current)</span></a>
+</li>
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="{% url 'detail_bill' id_cus report.group_hd 0 %}">Biên bản </a></li>
+    <li class="breadcrumb-item active" aria-current="page">Xử lý biên bản</li>
+{% endblock %}
+
+
+{% block body %}
+    <div class="jumbotron ">
+        <div class="row">
+            <div class="image-casorel col-xl-6 col-lg-6 col-md-12" style="">
+                <div style="position: relative; bottom: -100px">
+                    <div style="position:absolute;z-index: 1; bottom: 60px; right: 30px; ">
+                        {% if 'In biên bản' in request.session.list_per  and report.status_other != 'N' %}
+                            <div class="col-md-4">
+                                    <a class="btn btn-info  "  href="{% url 'report_print_pdf' report.listcus_id report.group_hd  %}" target="_blank" title="Xem thông tin biên bản dưới dạng dưới dạng mẫu, có thể in trực tiếp ra giấy"> <i class="fas fa-print"></i> </a>
+                            </div>
+                        {% endif %}
+                    </div>
+                </div>
+                <div  class="image-casorel-all">
+                    <ul id="images" class="d-none">
+                        {% block detail_list_image_casorel %}
+                            {% for src_image in src_images %}
+                            <li>
+{#                                <img src="http://sgc.qlhd.vn/static/img/200714/20200714_145358_VBPO_694_1_66_1_01_false_0094.jpg" alt="Picture 1" >#}
+                                <img src="/media/{{ src_image }}" alt="image" >
+                            </li>
+                            {% endfor %}
+                        {% endblock %}
+                    </ul>
+                </div>
+            </div>
+            <div class="col-xl-6 col-lg-6 col-md-12">
+                {% block detail_list_btn_menu %}
+                <div class="d-flex justify-content-end list-btn-menu mb-2">
+{#                    từ version 2.0 thì số biên bản sẽ bắt đầu từ 400000#}
+{#                    <span class="text-danger font-weight-bold " style="font-size: 20px">{% if detail_report %}Số biên bản:  {% if detail_report.number < 400000 %} {{ detail_report.number }} {% else %}{{ detail_report.id|add:400000 }} {% endif %} {% endif %}</span>#}
+                </div>
+                {% endblock %}
+
+                {% block detail_box_function_top %}
+                    <div class="box-function-top p-2 pl-3 mb-1  border " style="background: #17a2b8; color:  white">
+                        <div class="row">
+                            <div class="col-md-2 p-0 pt-1 pl-1">
+                            Trạng thái HĐ: <span class="font-weight-bold">{{ report.symbol }}</span>
+                            </div>
+                            <div class="col-md-2 p-0 pt-1">
+                                Trạng thái BB: <span class="font-weight-bold">{{ report.status_other }}</span>
+                            </div>
+                            <div class="col-md-5 p-0 pt-1">
+                                Mô tả BB: <span class="font-weight-bold">
+                                {% if  report.status_other == 'N' %}
+                                    <span class=" font-weight-bold"> Biên bản mới được tạo lập </span>
+                                {% elif report.status_other == 'P' %} </span>
+                                    {% if is_expired %}
+                                        <span class="font-weight-bold"> Biên bản đã hết hạn xử lý </span>
+                                    {% else %}
+                                        <span class=" font-weight-bold"> Biên bản đang chờ xử lý </span>
+                                    {% endif %}
+
+                                {% elif report.status_other == 'E' %} </span>
+                                    <span class=" font-weight-bold"> Biên bản đã được xử lý </span>
+                                {% else %}
+                                    <span class=" font-weight-bold"> Biên bản chưa được tạo
+                                    {#                                <button type="button" class="btn btn-success">Lưu biên bản</button>#}
+                                {% endif %}
+                                </span>
+                            </div>
+                        </div>
+                    </div>
+                {% endblock %}
+
+                {% block detail_box_bill_detail %}
+                <div class="box-detail-bill border border-dark p-3">
+                <form class="form-edit-report" method ="post" action="{% url 'report_edit_warehouse' report.listcus_id report.group_hd 1  %}" >
+                    {% csrf_token %}
+                    <div class="d-flex justify-content-start mb-2">
+{#                                nếu có quyền sửa và trạng thái biên bản chưa qua E thì cho phép chỉnh sửa biên bản#}
+                        {% if 'Chỉnh sửa hướng xử lý của TTPP' in request.session.list_per  and report.status_other != 'E' %}
+                            <button type="button" class="btn btn-info btn-edit-report"><i class="fas fa-edit"></i> Lưu biên bản</button>
+                        {% endif %}
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6">
+                            <label for="input-tax-number">Số biên bản: <span
+                                    class="font-weight-bold ">{% if detail_report %}{% if detail_report.number < 400000 %} {{ detail_report.number }} {% else %}{{ detail_report.id|add:400000 }} {% endif %} {% endif %}</span></label>
+{#                                    <input type="text" class="form-control d-none" id="input-date-create" name="input-date-create" disabled value="{{ detail_report.created_at|date:'d/m/Y h:m:s' }}">#}
+                        </div>
+                        <div class="col-md-6">
+                            <label for="input-tax-number">Ngày lập: <span
+                                    class="font-weight-bold ">{% if detail_report.created_at %}
+                                {{ detail_report.created_at|date:'d/m/Y h:m:s' }}  {{ detail_report.created_at|time:'H:m:s' }} {% endif %}</span></label>
+                            <input type="text" class="form-control d-none" id="input-date-create" name="input-date-create" disabled value="{{ detail_report.created_at|date:'d/m/Y h:m:s' }}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col-md-6 ">
+                            <label for="input-date-bill">TTPP: <span
+                                    class="font-weight-bold span-info-detail">
+                                {% for ttpp in cus_ttpp %}
+                                    {% if ttpp.id == detail_report.cus_ttpp_id %}
+                                        {{ ttpp.store_number }} - {{ ttpp.name }}
+                                    {% endif %}
+                                {% endfor %}
+                            </span></label>
+
+                        </div>
+                        <div class="col-md-6">
+                            <select class="form-control d-none" name="select-ttpp" id="" disabled>
+                                {% for ttpp in cus_ttpp %}
+                                    {% if ttpp.id == detail_report.cus_ttpp_id %}
+                                        <option value="{{ ttpp.id }}" selected>{{ ttpp.store_number }} - {{ ttpp.name }}</option>
+                                    {% else %}
+                                        <option value="{{ ttpp.id }}">{{ ttpp.store_number }} - {{ ttpp.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        </div>
+                    </div>
+
+                    <div class="form-row">
+                        <div class="col-md-12">
+                            <label for="select-industry">Đơn vị lập BB: <span
+                                    class="font-weight-bold ">{% if report.name %}
+                                {{ report.name }}{% endif %}</span></label>
+                            <input type="text" class="form-control d-none" id="" name="" disabled value="{% if report.name  %}{{ report.name }}{% endif %}">
+                        </div>
+                        <div class="col-md-12">
+                            <label for="input-tax-number">Địa chỉ: <span
+                                    class="font-weight-bold ">{% if report.address %}
+                                {{ report.address }}{% endif %}</span></label>
+                            <input type="text" class="form-control d-none" id="" name="" disabled value="{% if report.address  %}{{ report.address  }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="form-row">
+                        <div class="col mb-3">
+                            <label for="input-date-bill">Số Xe: <span
+                                    class="font-weight-bold span-info-detail">{% if detail_report.drive_number %}
+                                {{ detail_report.drive_number }}{% endif %}</span></label>
+{#                                        <input type="text" class="form-control d-none" id="input-so-xe" name="input-so-xe" disabled value="{% if detail_report.drive_number  %}{{ detail_report.drive_number }}{% endif %}">#}
+                        </div>
+                        <div class="col">
+                                <input type="text" class="form-control d-none" id="input-so-xe" name="input-so-xe" disabled value="{% if detail_report.drive_number  %}{{ detail_report.drive_number }}{% endif %}">
+                        </div>
+                    </div>
+                    <div class="table-responsive">
+                        <table class="table table-bordered">
+                            <thead class="text-center">
+                            <tr>
+                                <th class="align-middle">STT</th>
+                                <th class="align-middle">Số HD</th>
+                                <th class="align-middle">SKU</th>
+                                <th class="align-middle">Tên hàng hóa </th>
+                                <th class="align-middle">Số lượng</th>
+                                <th class="align-middle">Đơn giá</th>
+                                <th class="align-middle">Tình trạng hóa đơn</th>
+                                <th class="align-middle">Hướng xử lý TTPP</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            {% for detail in result_check_report %}
+                            <tr>
+                                <td style="background-color: #e9ecef">{{ forloop.counter }}</td>
+                                <td style="background-color: #e9ecef">{% if detail.bill_number %}{{ detail.bill_number }}{% endif %}</td>
+                                <td style="background-color: #e9ecef">{% if detail.sku %}{{ detail.sku }}{% endif %}</td>
+                                <td style="background-color: #e9ecef">{% if detail.name %}{{ detail.name }}{% endif %}</td>
+                                <td style="background-color: #e9ecef">{% if detail.unit %}{{ detail.unit }}{% endif %}</td>
+                                <td style="background-color: #e9ecef">{% if detail.status %}{{ detail.status }}{% endif %}</td>
+                                <td style="background-color: #e9ecef">{% if detail.status %}{{ detail.solution }}{% endif %}</td>
+                                <td  {% if 'Chỉnh sửa hướng xử lý của TTPP' in request.session.list_per  and report.status_other != 'E' %}{% else %} style="background-color: #e9ecef" {% endif %}>
+                                    <input type="text" value="{% if detail.solution %}{{ detail.solution }}{% endif %}" name="input-ttpp-execute[]"  {% if 'Chỉnh sửa hướng xử lý của TTPP' in request.session.list_per  and report.status_other != 'E' %}{% else %} disabled="" {% endif %}>
+                                </td>
+                                <td class="d-none"><input  value="{{ detail.id }}" name="input_id_detail[]" ></td>
+                            </tr>
+                            {% endfor %}
+                            </tbody>
+                        </table>
+                            <div class="d-flex justify-content-end  div-add-line">
+                                <button type="button" class="btn btn-success d-none">+</button>
+                                <button type="button" class="btn btn-danger ml-1 d-none">-</button>
+                            </div>
+                    </div>
+                    <div>
+                        <div>
+                            <h6>Đề nghị của bên lập biên bản</h6>
+                                <textarea name="text_area_create" class="form-control textarea-comment-cus" disabled>{% if detail_report.comment_create %}{{ detail_report.comment_create }}{% endif %}</textarea>
+                        </div>
+                        <div>
+                            <h6>Hướng xử lý của TTPP</h6>
+                            <textarea name="text_area_ttpp" class="form-control textarea-comment-ttpp"  {% if 'Chỉnh sửa hướng xử lý của TTPP' in request.session.list_per  and report.status_other != 'E' %}{% else %} disabled="" {% endif %}>{% if detail_report.comment_ttpp %} {{ detail_report.comment_ttpp }} {% endif %}</textarea>
+                        </div>
+
+                    </div>
+
+                </form>
+                </div>
+                {% endblock %}
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function () {
+
+            var html_old_table = $('form tbody').html()
+
+            $('#images').viewer({
+                    inline: true,
+                    title: false,
+                    toolbar: {
+                        zoomIn: 4,
+                        zoomOut: 4,
+                        oneToOne: 4,
+                        prev: 4,
+                        next: 4,
+                        rotateLeft: 4,
+                        rotateRight: 4,
+                    },
+                    {#movable: false,#}
+                    tooltip: false,
+                    fullscreen: false,
+                }
+            );
+
+            $('.image-casorel').on('click', '.viewer-list  li img', function () {
+                console.log($(this).data('index'))
+
+            })
+
+
+            $('.btn-edit-report').on('click', function(){
+                Swal.fire({
+                    title: 'Bạn có chắc chắn?',
+                    text: "Muốn chỉnh sửa thông tin biên bản bộ hóa đơn này!",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: '#3085d6',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Có , Tôi muốn!',
+                    cancelButtonText: 'Hủy'
+                }).then((result) => {
+                    if(result.isConfirmed){
+                        console.log("oke")
+                        $(".form-edit-report").submit()
+                    }
+                })
+            })
+
+            $('.btn-print-report-confirm').on('click', function(){
+                window.open($('.btn-print-report-submit').attr('href'), '_blank')
+            })
+
+            //reset table body
+            $('form .btn-reset-report').on('click', function () {
+                $('form tbody').html(html_old_table)
+            })
+
+        })
+
+        function ajaxReport(message) {
+            $.ajax({
+                url : '{% url 'ajax_update_report' %}',
+                type : 'post',
+                data : {
+                    'csrfmiddlewaretoken' : '{{ csrf_token }}',
+                    'message' : message,
+                    'group_bill' : '{{ report.group_hd }}',
+                    'cus_id' : '{{ report.listcus_id }}'
+                },
+                success : function (data) {
+                    if (data.message == 'success'){
+                        alertSwalTopRight('info', 'Thành công !!')
+                        window.location.reload()
+                    }
+                },
+                error : function (data) {
+                    alertSwalTopRight('danger', 'Đã xảy ra lỗi, vui lòng thử lại sau')
+                }
+            })
+        }
+    </script>
+    {% block add_js_detail %}
+
+    {% endblock %}
+{% endblock %}

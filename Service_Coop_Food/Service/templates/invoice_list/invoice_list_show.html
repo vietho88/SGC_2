@@ -1,0 +1,627 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block active_header_invoice_list %}
+    <li class="nav-item active">
+        <a class="nav-link" href="{% url 'home_invoice_list' %}">Bảng Kê <span class="sr-only">(current)</span></a>
+    </li>
+{% endblock %}
+
+{% block breadcrumb %}
+    <li class="breadcrumb-item"><a href="#">Bảng kê</a></li>
+    <li class="breadcrumb-item active" aria-current="page">Xem bảng kê</li>
+{% endblock %}
+
+{% block body %}
+    <div class="jumbotron">
+        <div class="search-box">
+            <form method="get" action="{% url 'home_invoice_list' %}">
+                <div class="row">
+                    <div class="form-group col-xl-3 col-lg-3">
+                        <div class="row">
+                            <div class="form-group col-xl-6 col-lg-6">
+                                <label for="input_date_from">Từ ngày</label>
+                                <input type="" class="form-control" id="input_date_from" aria-describedby="emailHelp" placeholder="" name="timeStart" value="{{date_from}}">
+                                {% comment %} <input type="date" class="form-control" id="input_date_from" aria-describedby="emailHelp" placeholder="Enter email" name="timeStart"> {% endcomment %}
+                            </div>
+                            <div class="form-group col-xl-6 col-lg-6">
+                                <label for="input_date_to">Đến ngày</label>
+                                <input type="" class="form-control" id="input_date_to" aria-describedby="emailHelp" placeholder="" name="timeEnd" value="{{date_to}}">
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-xl-5 col-lg-5">
+                        <div class="row">
+
+                            <div class="form-group col-xl-6 col-lg-6">
+                                <label for="exampleCheck1">Loại bảng kê</label>
+                                <br>
+                                <select class="form-group selectpicker" id="select_type_product" multiple data-actions-box="true" name="select_type" data-width="100%" data-selected-text-format="count > 1" data-count-selected-text= "Đã chọn {0} loại">
+                                    {% for type in invoice_list_types %}
+                                        {% if type.id|stringformat:"i" in invoice_list_type_chosed %}
+                                            <option value="{{ type.id }}" selected>{{ type.name }}</option>
+                                        {% else %}
+                                            <option value="{{ type.id }}">{{ type.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-xl-6 col-lg-6">
+                                <label for="exampleCheck1">Chọn đơn vị</label>
+                                <br>
+                                <select class="form-group selectpicker" id="select_cus"   data-actions-box="true" name="select_cus" data-width="100%" data-live-search="{% if cus_managers|length > 5 %}true{% else %}false{% endif %}">
+                                    {% for cus in cus_managers %}
+                                        {% if cus.id == cus_manager_chosed %}
+                                            <option value="{{ cus.id }}" selected>{{ cus.store_number }} - {{ cus.name }}</option>
+                                        {% else %}
+                                            <option value="{{ cus.id }}">{{ cus.store_number }} - {{ cus.name }}</option>
+                                        {% endif %}
+                                    {% endfor %}
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="form-group col-xl-1 col-lg-2 col-md-2">
+                                <button type="submit" class="btn btn-info" style="margin-top: 30px; width: 100%">
+                                    <i class="fas fa-search"></i>  Xem</button>
+                            </div>
+                </div>
+            </form>
+            <div class="form-group col-xl-2 col-lg-2">
+                <button class="btn btn-outline-info btn-search-advance" type="button" data-toggle="collapse" data-target="#collapseExample" aria-expanded="false" aria-controls="collapseExample">
+                    <i class="fas fa-chevron-down"></i> Tìm kiếm nâng cao
+                </button>
+            </div>
+            <div class="collapse" id="collapseExample">
+                <div class="card card-body">
+                    <div class="row">
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputNumberInvoice" placeholder="Số bảng kê">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputNumberPO" placeholder="Số PO">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputNumberReceiver" placeholder="Số Receiver">
+                        </div>
+                        <div class=" col  p-1">
+                            <input type="text" class="form-control" id="inputNumberVendor" placeholder="Mã Vendor">
+                        </div>
+                        <div class=" col  p-1">
+                            <div class="form-group">
+                                <select class="form-control select-qa" name="" >
+                                    <option value="">Trạng thái QA</option>
+                                    <option value="1">QA</option>
+                                    <option value="0">Không QA</option>
+                                </select>
+                            </div>
+                        </div>
+                        <div class=" col  p-1">
+                            <div class="form-group">
+                                <select class="form-control select-nhan-hang" name="" >
+                                    <option value="">Trạng thái Nhận hàng</option>
+                                    <option value="1">Đã nhận</option>
+                                    <option value="0">Chưa nhận</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <div class="jumbotron">
+        <div class="row">
+            <div class="pl-3">
+                <h5><i class="fas fa-table"></i> Danh sách bảng kê</h5>
+            </div>
+            {{ list_per }}
+            <div class="ml-auto pr-4">
+                {% if 'IN pom/inv' in request.session.list_per %}
+                    <button class="btn btn-info mh-10 " type="button" data-toggle="modal" data-target="#modal_print_pom" data-keyboard="false" data-backdrop="static">
+                        <i class="fas fa-print"></i> In POM
+                    </button>
+                {% endif %}
+            </div>
+        </div>
+        <hr>
+        <div class="mian-table table-responsive">
+            {% block data_table %}
+                <table class="table table-bordered table-invoice-list">
+                    <thead class="text-center">
+                        <tr>
+                            <th>STT</th>
+                            <th>Số Bảng Kê</th>
+                            <th>Loại Bảng Kê</th>
+                            <th>Số PO</th>
+                            <th>Số Receiver</th>
+                            <th>Mã Vendor</th>
+                            <th>Ngày Tải Lên</th>
+                            <th>Ngày Sửa Cuối</th>
+                            <th>Trạng Thái QA</th>
+                            <th>Nhận hàng</th>
+                            <th>Xem ảnh </th>
+                        </tr>
+                    </thead>
+                    <tbody class="text-center ">
+                             <tr class="pt-auto">
+                                <td class="pt-3" >{{ forloop.counter }}</td>
+                                <td class="pt-3" >{{ invoice.type_bk }}</td>
+                                <td class="pt-3">{{ invoice.bk_number }}</td>
+                                <td class="pt-3">{{ invoice.po_number }}</td>
+                                <td class="pt-3">{{ invoice.receiver_number }}</td>
+                                <td class="pt-3">{{ invoice.vendor_number }}</td>
+                                <td class="pt-3">{{ invoice.upload_date }}</td>
+                                <td class="pt-3">{{ invoice.upload_date }}</td>
+                                <td class="pt-3">{{ invoice.is_qa }}</td>
+                                <td class="pt-3">{{ invoice.is_qa }}</td>
+                                <td class="pt-3">{{ invoice.is_qa }}</td>
+{#                                <td style="width: 100px; height: 100px"><a href="{% url 'invoice_list_detail' 1 %}" target="_blank"><img class="card-img-top" src="https://sgc.qlhd.vn/static/img/200926/20200926_082700_113_1773_14_113_1_01_false_0001.jpg" alt="Card image cap"></a></td>#}
+                            </tr>
+                    </tbody>
+                </table>
+
+            {% endblock %}
+        </div>
+    </div>
+
+
+    <!-- Modal -->
+    <div class="modal fade " id="modal_zoom_img" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-body">
+                    <div id="body_modal_zoom_img">
+                        <img src="" alt="img_modal" class="w-100" style="min-height: 600px; max-height: 800px">
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    {% if 'IN pom/inv' in request.session.list_per %}
+    <div class="modal fade" id="modal_print_pom" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog modal-xl" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">In POM</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="row">
+                            <div class="form-group col-xl-3 col-lg-3">
+                                <label for="input_date_from">Chọn ngày</label>
+                                <input type="" class="form-control" id="input_date_print_pom" aria-describedby="emailHelp" placeholder="" name="timeStart" value="{{ date_from }}">
+                            </div>
+                            <div class="form-group col-xl-4 col-lg-4">
+                                <label for="input_date_to">Chọn đơn vị</label>
+                                <select class="form-group selectpicker"  id="select_cus_invoice_print_pom"  name="selectbranch"  data-width="100%" data-live-search="{% if list_cus|length > 5 %}true{% else %}false{% endif %}">
+                                    {% for cus in cus_managers %}
+                                        <option value="{{ cus.id }}">{{ cus.store_number }} - {{ cus.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-xl-3 col-lg-3">
+                                <label for="exampleCheck2">Chọn loại bảng kê</label>
+                                <br>
+                                <select class="form-group selectpicker" multiple id="select_product_invoice_print_pom" data-actions-box="true" name="selectbranch"  data-width="100%" data-selected-text-format="count > 1" data-count-selected-text= "Đã chọn {0} ngành hàng">
+                                    {% for type in invoice_list_types %}
+                                        <option value="{{ type.id }}">{{ type.name }}</option>
+                                    {% endfor %}
+                                </select>
+                            </div>
+                            <div class="form-group col-xl-2 col-lg-2">
+                                <button type="button" class="btn btn-info btn-search-data-print-pom" style="margin-top: 30px;"><i class="fas fa-search"></i> Tìm kiếm
+                                    </button>
+                            </div>
+                        </div>
+
+                    </div>
+                    <hr>
+                    <div class="">
+                        <form id="form_print_pom">
+                            {% csrf_token %}
+                            <table class="table table-sm table-bordered table-print-pom">
+                                <thead>
+                                    <th class="text-center " style="padding-right: 4.8px"> <input type="checkbox" id="input-check-all-print-pom"></th>
+                                    <th class="text-center">STT</th>
+                                    <th class="text-center">Số Bảng Kê</th>
+                                    <th class="text-center">Mã Receiver</th>
+                                    <th class="text-center">Mã Vendor</th>
+                                </thead>
+                                <tbody>
+                                </tbody>
+                            </table>
+                        </form>
+                    </div>
+                    <div class=" d-flex justify-content-end">
+                        <button type="button" class="btn btn-info " id="btn-print-pom" style="margin-top: 30px;">
+                            <i class="fas fa-print"></i> In POM
+                        </button>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    {% endif %}
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function () {
+            var SETTING_DATATABLE_LAN = {
+                'paginate': {
+                    "first": "Trang đầu",
+                    "last": "Trang cuối",
+                    "next": "Trang sau",
+                    "previous": "Trang trước"
+                },
+                'info': "Hiển thị _START_ đến _END_ của _TOTAL_ dòng",
+                "infoEmpty":      "Hiển thị 0 đến 0 của 0 dòng",
+                'processing': "Đang xử lí, vui lòng đợi !!! ",
+                'zeroRecords': "Không có bảng kê cần tìm kiếm.",
+                "lengthMenu": "Hiển thị _MENU_ dòng",
+            }
+
+            var SETTING_DATATABLE_COLUMN = [
+                {
+                    "data": null,
+                    "sName": "Index",
+                    "render": function (data, type, row, meta) {
+                        //return ( meta.row + meta.settings._iDisplayStart + 1)// This contains the row index
+                        return '<a href="/home/invoice_list_detail/'+ {{ cus_manager_chosed }} +'/'+data.id_list_invoice+'"  target = "_blank" >' + ( meta.row + meta.settings._iDisplayStart + 1) + '</a>' // This contains the row index
+
+                    }
+                },
+                {
+                    "data": null,
+                    "sName": "Index",
+                    "render": function (data, type, row, meta) {
+                        return '<a href="/home/invoice_list_detail/'+ {{ cus_manager_chosed }} +'/'+data.id_list_invoice+'"  target = "_blank">' + data.bk_number + '</a>' // This contains the row index
+                    }
+                },
+                {
+                    data: 'type_bk',
+                    render: $.fn.dataTable.render.text()
+                },
+                {
+                    data: 'po_number',
+                    render: $.fn.dataTable.render.text()
+                },
+                {
+                    data: 'receiver_number',
+                    render: $.fn.dataTable.render.text()
+                },
+                {
+                    data: 'vendor_number',
+                    render: $.fn.dataTable.render.text()
+                },
+                {
+                    "data": "upload_date",
+                    "render": function (data) {
+                        let date = new Date(data)
+                        return (date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN')) ;
+                    }
+                },
+                {
+                    "data": "last_change_date",
+                    "render": function (data) {
+                        if (data != null){
+                             let date = new Date(data)
+                            return (date.toLocaleDateString('vi-VN') + ' ' + date.toLocaleTimeString('vi-VN')) ;
+                        }
+                        else{
+                            return ''
+                        }
+                    }
+                },
+                {
+                    "data": "is_qa",
+                    "render": function (data) {
+                        if (data == 1) {
+                            return '<i class="fas fa-check"></i>'
+                        } else {
+                            return ""
+                        }
+                    },
+                },
+                {
+                    "data": "po_number",
+                    "render": function (data) {
+                        if (data !=  '' && data != 'QA') {
+                            return '<i class="fas fa-check"></i>'
+                        } else {
+                            return ""
+                        }
+                    },
+                },
+                {
+                    "data": "src_img",
+                    "sName": "Index",
+                    "render": function (data, type, row, meta) {
+                        return  '<span class="img_show " style="cursor: pointer" title="Xem ảnh bảng kê"> <i class="fas fa-images  "></i> </span> <img class="card-img-top d-none" style="width: 50px; height: 80px" src="/media/'+data+'" alt="Card image cap" loading="lazy" >'
+                    }
+                },
+            ]
+
+            var SETTING_DEF_COL = [
+                      {
+                          "targets": 0, // your case first column
+                          "className": "align-middle",
+                     },
+                     {
+                          "targets": 1,
+                          "className": "align-middle",
+                     },                      {
+                          "targets": 2, // your case first column
+                          "className": "align-middle",
+                     },
+                     {
+                          "targets": 3,
+                          "className": "align-middle",
+                     },                      {
+                          "targets": 4, // your case first column
+                          "className": "align-middle",
+                     },
+                     {
+                          "targets": 5,
+                          "className": "align-middle",
+                     },                      {
+                          "targets": 6, // your case first column
+                          "className": "align-middle",
+                     },                      {
+                          "targets": 7, // your case first column
+                          "className": "align-middle",
+                     }
+            ]
+
+            // Search nomarl
+            $('.table-invoice-list').dataTable({
+                "processing": true,
+                "serverSide": true,
+                "searching": false,
+                "lengthChange": true,
+                "pageLength": 100,
+                "ordering": true,
+                'language': SETTING_DATATABLE_LAN,
+                'ajax': {
+                    type: "GET",
+                    url: "{% url 'ajax_datatable_home_invoice_list' %}",
+                    data : function(d){
+                        d.select_cus = $('#select_cus').val()
+                        d.select_type = $('#select_type_product').val()
+                        d.date_from = $('form input[name = timeStart]').val()
+                        d.date_to = $('form input[name = timeEnd]').val()
+                    }
+                    },
+                    "columns": SETTING_DATATABLE_COLUMN,
+                    'columnDefs': SETTING_DEF_COL,
+            })
+
+            //Search nâng cao
+            $('#inputNumberInvoice ,#inputNumberPO, #inputNumberReceiver, #inputNumberVendor').keyup($.debounce(500, function () {
+                check = $('.btn-search-advance').hasClass('collapsed')
+                if (check){
+                    check = 'false'
+                }
+                else {
+                    check = 'true'
+                }
+                if ($('#select_type_product').val() == '' || $('#select_cus_home').val() == '') {
+                    alert("Bạn chưa chọn chi nhánh hoặc trạng thái hóa đơn !!!")
+                    return false
+                }
+
+                $('.table-invoice-list').DataTable().destroy()
+                $('.table-invoice-list').dataTable({
+                    "processing": true,
+                    "serverSide": true,
+                    "searching": false,
+                    "lengthChange": true,
+                    "pageLength": 100,
+                    "ordering": true,
+                    'language': SETTING_DATATABLE_LAN,
+                    'ajax': {
+                        type: "GET",
+                        url: "{% url 'ajax_datatable_home_invoice_list' %}",
+                        data : function(d){
+                            d.select_cus = $('#select_cus').val()
+                            d.select_type = $('#select_type_product').val()
+                            d.po_number = $('#inputNumberPO').val()
+                            d.bk_number_search = $('#inputNumberInvoice').val()
+                            d.receiver_number = $('#inputNumberReceiver').val()
+                            d.vendor_number = $('#inputNumberVendor').val()
+                            d.select_qa = $('.select-qa').val()
+                            d.select_nhan_hang = $('.select-nhan-hang').val()
+                            d.date_from = $('form input[name = timeStart]').val()
+                            d.date_to = $('form input[name = timeEnd]').val()
+                        }
+                        },
+                        "columns": SETTING_DATATABLE_COLUMN,
+                        'columnDefs': SETTING_DEF_COL,
+                })
+            }));
+
+            //Search nâng cao
+            $('.select-nhan-hang, .select-qa').change($.debounce(500, function () {
+                check = $('.btn-search-advance').hasClass('collapsed')
+                if (check){
+                    check = 'false'
+                }
+                else {
+                    check = 'true'
+                }
+                if ($('#select_type_product').val() == '' || $('#select_cus_home').val() == '') {
+                    alert("Bạn chưa chọn chi nhánh hoặc trạng thái hóa đơn !!!")
+                    return false
+                }
+
+                $('.table-invoice-list').DataTable().destroy()
+                $('.table-invoice-list').dataTable({
+                    "processing": true,
+                    "serverSide": true,
+                    "searching": false,
+                    "lengthChange": true,
+                    "pageLength": 100,
+                    "ordering": true,
+                    'language': SETTING_DATATABLE_LAN,
+                    'ajax': {
+                        type: "GET",
+                        url: "{% url 'ajax_datatable_home_invoice_list' %}",
+                        data : function(d){
+                            d.select_cus = $('#select_cus').val()
+                            d.select_type = $('#select_type_product').val()
+                            d.po_number = $('#inputNumberPO').val()
+                            d.bk_number_search = $('#inputNumberInvoice').val()
+                            d.receiver_number = $('#inputNumberReceiver').val()
+                            d.vendor_number = $('#inputNumberVendor').val()
+                            d.select_qa = $('.select-qa').val()
+                            d.select_nhan_hang = $('.select-nhan-hang').val()
+                            d.date_from = $('form input[name = timeStart]').val()
+                            d.date_to = $('form input[name = timeEnd]').val()
+                        }
+                        },
+                        "columns": SETTING_DATATABLE_COLUMN,
+                        'columnDefs': SETTING_DEF_COL,
+                })
+            }));
+
+
+
+            $('#input_date_from, #input_date_to, #input_date_print_pom').datepicker({
+                todayBtn: "linked",
+                language: "vi",
+                autoclose: true
+            })
+
+            $('.table-invoice-list ').on('click' , '.img_show' ,function () {
+                $('#modal_zoom_img').modal('show')
+                $('#body_modal_zoom_img img').attr('src', $(this).parent().find('img').attr('src'))
+            })
+
+            $('#input-check-all-print-pom').change(function () {
+                if($(this).is(':checked')){
+                    $('.table-print-pom input[type="checkbox"]').prop('checked', true)
+                    $('.table-print-pom input[name="input_id_print\[\]"]').removeAttr('disabled', 'disabled')
+                }
+                else{
+                    $('.table-print-pom input[type="checkbox"]').prop('checked', false)
+                    $('.table-print-pom input[name="input_id_print\[\]"]').attr('disabled', 'disabled')
+                }
+
+            })
+
+            $('.table-print-pom tbody ').on('change', 'input[type="checkbox"]', function () {
+                if ($(this).is(':checked')) {
+                    $(this).parent().children('input[name="input_id_print\[\]"]').removeAttr('disabled', 'disabled')
+                } else {
+                    $(this).parent().children('input[name="input_id_print\[\]"]').attr('disabled', 'disabled')
+                }
+            })
+
+            $(".btn-search-data-print-pom").on("click", function () {
+                if (!$('#select_product_invoice_print_pom').val().length) {
+                    alertSwalTopRight('info', 'Bạn chưa chọn loại bảng kê !!')
+                    return false
+                }
+                $.ajax({
+                    url: '/ajax/invoice_list/find_bill_to_print_pom',
+                    type: 'get',
+                    data: {
+                        id_cus: $('#select_cus_invoice_print_pom').val(),
+                        type_product: $('#select_product_invoice_print_pom').val(),
+                        date: $('#input_date_print_pom').val(),
+                        message: 'get_data',
+                    },
+                    success: function (data) {
+                        if (data.message == 'success' && data.data.length > 0) {
+                            html_table = ''
+                            data.data.forEach(function (e, index) {
+                                html_table += '<tr role="row" class="odd">\n' +
+                                    '                                        <td class="text-center align-middle"> <input type="checkbox"> <input name="input_id_print[]" type="hidden" value="' + e[3] + '"> </td>\n' +
+                                    '                                        <td class="text-center align-middle">' + (Number(index) + 1) + '</td>\n' +
+                                    '                                        <td class="text-center align-middle">' + e[0] + '</td>\n' +
+                                    '                                        <td class="text-center align-middle">' + e[1] + '</td>\n' +
+                                    '                                        <td class="text-center align-middle">' + e[4] + '</td>\n' +
+                                    '                                    </tr>'
+                            })
+                            $(".table-print-pom").DataTable().destroy()
+                            $('.table-print-pom tbody ').html(html_table)
+                            $(".table-print-pom").DataTable({
+                                searching: true,
+                                ordering: false,
+                                pageLength: 100,
+                                paging: false,
+                                language: {
+                                    paginate: {
+                                        "first": "Trang đầu",
+                                        "last": "Trang cuối",
+                                        "next": "Trang trước",
+                                        "previous": "Trang sau"
+                                    },
+                                    info: "Hiển thị _START_ đến _END_ của _TOTAL_ dòng",
+                                    processing: "Đang xử lí, vui lòng đợi !!! ",
+                                    zeroRecords: "Không có bộ hóa đơn cần tìm kiếm.",
+                                    search: "Tìm kiếm"
+                                }
+                            })
+                        }
+                        else {
+                            if ($('.table-print-pom tbody').html() != '') {
+                                $('.table-print-pom tbody').html('')
+                            }
+                            alertSwalTopRight('info', 'Không có bảng kê được tìm thấy')
+
+                        }
+                    },
+                    error: function (data) {
+                    }
+                })
+
+
+            })
+
+            $('#btn-print-pom').click(function () {
+                if (!$('.table-print-pom tbody input[type="checkbox"]:checked').length) {
+                    alertSwalTopRight('info', 'Bạn chưa chọn bảng kê nào cả !!')
+                    return false
+                }
+                let list_group = []
+                let form_data = new FormData(document.getElementById('form_print_pom'))
+                form_data.append('id_cus', $('#select_cus_invoice_print_pom').val())
+                form_data.append('message', 'print')
+                $.ajax({
+                    url: "/ajax/invoice_list/find_bill_to_print_pom",
+                    type: 'post',
+                    data: form_data,
+                    processData: false,
+                    contentType: false,
+                        success: function (data) {
+                            if (data.message == 'oke') {
+                                window.open('/media/pdf_merge/' + data.data, '_blank')
+                            } else {
+                                alertSwalTopRight('info', 'Không có pdf để xuất !!')
+                            }
+                        },
+                        error: function (data) {
+
+                        }
+                    })
+
+            })
+
+            $('#input_date_print_pom, #select_cus_invoice_print_pom, #select_product_invoice_print_pom').on('change', ()=>{
+                if($('.table-print-pom tbody').html() != ''){
+                    $('.table-print-pom tbody').html('')
+                }
+            })
+
+
+        })
+
+
+    </script>
+{% endblock  %}

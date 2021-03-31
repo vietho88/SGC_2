@@ -1,0 +1,252 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+    <a class="btn btn-outline-info" href="{% url 'admin_user' %}"> <i class="fas fa-user  "></i> Xem toàn bộ người dùng</a>
+{% endblock %}
+
+{% block active_user %}
+    <a href="{% url 'admin_user' %}" class="list-group-item list-group-item-action bg-light nav-link-active"><i class="fas fa-user-alt"></i> Quản lý
+        người dùng</a>
+{% endblock %}
+
+{% block admin_content %}
+    <div class="container  mt-5">
+        <h4 class="mb-4">Thêm người dùng mới</h4>
+        <form method="post" action="{% url 'admin_user_add' %}" id="form_add_user" autocomplete="off">
+            {% csrf_token %}
+            <div>
+                <div class="alert-danger div-message-error-add-user  m-2">
+                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %} alert-danger {% else %} alert-success {% endif %} alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Tên đăng nhập
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {{ form_add_user.username }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Chọn mô hình
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {{ form_add_user.site }}
+                        {% if error %}
+                            <select class="form-control  select-add-site" name="site" >
+                                {% for site in list_site %}
+                                    {% if site|add:'0' == site.id %}
+                                        <option value="{{ site.id }}" selected>{{ site.name }}</option>
+                                    {% else %}
+                                        <option value="{{ site.id }}" >{{ site.name }}</option>
+                                    {% endif %}
+                                {% endfor %}
+                            </select>
+                        {% else %}
+                        <select class="form-control  select-add-site" name="site" >
+                            {% for site in list_site %}
+                                <option value="" selected disabled hidden>Chọn mô hình</option>
+                                <option value="{{ site.id }}">{{ site.name }}</option>
+                            {% endfor %}
+                        </select>
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Vai trò
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {% if error %}
+                        <select class="form-control select-add-role" name="role" id="id_role" required="required">
+                            {% for role in find_role %}
+                                {% if role.id == role_id|add:'0' %}
+                                    <option selected value="{{ role.id }}">{{ role.name }}</option>
+                                {% else %}
+                                    <option  value="{{ role.id }}">{{ role.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+                        {% else %}
+                            {{ form_add_user.role }}
+                        {% endif %}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Chọn Đơn vị
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {% if error %}
+                        <select class="form-control select-add-cus" name="cus" id="id_cus" required="True">
+                            {% for cus in find_cus %}
+                                {% if cus.id == cus_id|add:'0' %}
+                                    <option selected value="{{ cus.id }}">{{ cus.name }}</option>
+                                {% else %}
+                                    <option  value="{{ cus.id }}">{{ cus.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+                        {% else %}
+                            {{ form_add_user.cus }}
+                        {% endif %}
+
+                    </div>
+                </div>
+                </div>
+{#                <div class="temp-ttpp-hiden -none">#}
+{#                    <div class="form-group row">#}
+{#                        <label for="colFormLabel" class="col-md-3 col-form-label">Trung Tâm Phân Phối#}
+{#                            <span class="text-danger">*</span> #}
+{#                        </label>#}
+{#                        <div class="col-md-9">#}
+{#                            {{ form_add_user.ttpp }}#}
+{#                            <small id="emailHelp" class="form-text text-muted">Bắt buộc nếu là TTPP !</small>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+                <div class="temp-manager-hiden ">
+                    <div class="form-group row">
+                        <label for="colFormLabel" class="col-md-3 col-form-label">Đơn vị Quản Lý
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="col-md-9">
+                            {% if error %}
+                        <select class="form-control select-add-cus-manager selectpicker" name="cus_manager" id="id_cus_manager" required="True" multiple data-actions-box="true" data-live-search="true">
+                            {% for cus in find_cus_manager %}
+                                {% if cus.id|stringformat:'i' in cus_manager %}
+                                    <option selected value="{{ cus.id }}" data-subtext="{{ cus.site.name }}">{{ cus.name }}</option>
+                                {% else %}
+                                    <option  value="{{ cus.id }}" data-subtext="{{ cus.site.name }}">{{ cus.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+                        {% else %}
+                            {{ form_add_user.cus_manager }}
+                        {% endif %}
+
+{#                            <select class="form-control select-add-cus-manager selectpicker">#}
+
+{#                            </select>#}
+                        </div>
+                    </div>
+                </div>
+{#                <div class="form-group row">#}
+{#                    <label for="colFormLabel" class="col-md-3 col-form-label">Tên đăng nhập#}
+{#                        <span class="text-danger">*</span> </label>#}
+{#                    <div class="col-md-9">#}
+{#                        {{ form_add_user.username }}#}
+{#                    </div>#}
+{#                </div>#}
+{#                <div class="form-group row">#}
+{#                    <label for="colFormLabel" class="col-md-3 col-form-label">Mật khẩu#}
+{#                        <span class="text-danger">*</span> </label>#}
+{#                    <div class="col-md-9">#}
+{#                        {{ form_add_user.password }}#}
+{#                    </div>#}
+{#                </div>#}
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Email
+{#                        <span class="text-danger">*</span> #}
+                    </label>
+                    <div class="col-md-9">
+                        {{ form_add_user.email }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Số điện thoại
+{#                        <span class="text-danger">*</span> #}
+                    </label>
+                    <div class="col-md-9">
+                        {{ form_add_user.phone_number }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Chụp hình
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {{ form_add_user.is_take_photo }}
+                    </div>
+                </div>
+
+        </form>
+        <div class="modal-footer d-flex justify-content-end">
+            <button type="submit" form="form_add_user" class="btn btn-info btn-submit-add-user"> <i class="fas fa-save"></i> Lưu</button>
+            <button type="reset" form="form_add_user" class="btn btn-danger"><i class="fas fa-undo"></i> Hủy</button>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function () {
+            $('.select-add-site').on('change', function () {
+                $.ajax({
+                    url : '{% url 'ajax_change_option_site_add_user'  %}' ,
+                    type : 'get',
+                    data : {
+                        'site_id' : $('.select-add-site').val()
+                    },
+                    success : function (data) {
+                        html_role = ""
+                        html_cus = ""
+                        html_cus_manager = ""
+                        data.list_rol_site.forEach(function (element) {
+                            html_role += "<option value='"+element[0]+"'> " +element[1]+"</option>"
+                        })
+                        $('.select-add-role').html(html_role)
+                        data.list_cus_site.forEach(function (element) {
+                            html_cus += "<option value='"+element[0]+"'> " +element[1]+"</option>"
+                        })
+
+                        data.list_cus_site_manager.forEach(function (element) {
+                            html_cus_manager += "<option value='"+element[0]+"' data-subtext='"+ element[2] +"'> " +element[1]+"</option>"
+                        })
+
+                        $('.select-add-cus').html(html_cus)
+                        $('form .select-add-cus-manager').selectpicker('destroy');
+                        $('form .select-add-cus-manager').html(html_cus_manager)
+                        $('form .select-add-cus-manager').selectpicker({
+                        })
+
+                    },
+                    error: function (data) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',
+                        })
+                    }
+
+                })
+            })
+
+        })
+    </script>
+{% endblock %}

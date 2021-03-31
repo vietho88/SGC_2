@@ -1,0 +1,323 @@
+{% extends 'admin/base_admin.html' %}
+
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+{#    <button class="btn btn-outline-info" data-toggle="modal" data-target="#modal_add_permission">Thêm chức năng mới <i class="fas fa-plus-square"></i></button>#}
+{% endblock %}
+
+{% block active_permission %}
+    <a href="{% url 'admin_permission' %}" class="list-group-item list-group-item-action bg-light nav-link-active"><i class="fas fa-user-astronaut    "></i> Quản lý phân quyền</a>
+{% endblock %}
+
+
+{% block admin_content %}
+    <div class="table-content">
+        <table class="table table-striped table-bordered table-sm">
+            <thead class="thead-dark text-center">
+            <tr>
+                <th scope="col">STT</th>
+                <th scope="col">Quyền</th>
+                <th scope="col">Loại</th>
+                <th scope="col">Ngày tạo</th>
+                <th scope="col">Ngày cập nhật</th>
+{#                <th scope="col">Thao tác</th>#}
+            </tr>
+            </thead>
+            <tbody>
+                {% for per in list_per %}
+                    <tr>
+                        <td class="text-center align-middle" >{{ list_per.start_index|add:forloop.counter0  }}</td>
+                        <td class="align-middle">{{ per.name }}</td>
+                        <td class="align-middle text-center">
+                            {% if per.type == 1 %}
+                                Hóa đơn
+                            {% elif per.type == 2 %}
+                                Bảng kê
+                            {% elif per.type == 3 %}
+                                Biên bản
+                            {% endif %}
+                        </td>
+                         <td class="text-center align-middle">{{ per.created_at|date:'d/m/Y H:m:s' }}</td>
+                        <td class="text-center align-middle">{{ per.updated_at|date:'d/m/Y H:m:s' }}</td>
+{#                        <td  class="text-center align-middle">#}
+{#                            <a type="button" class="btn-edit-per btn btn-outline-info" title="Sửa thông tin phân quyền"  data-placement="top" data-id_per = "{{ per.id }}" data-name_per_edit = "{{per.name}}" ><i class="far fa-edit"></i> </a>#}
+{#                            <a type="button" class="btn-delete-per btn btn-outline-info" title="Xóa phân quyền" data-toggle="tooltip" data-placement="top" data-message="reset  " data-id_per = "{{ per.id }}" > <i class="fas fa-trash-alt"></i></i> </a>#}
+{#                        </td>#}
+                    </tr>
+                {% empty %}
+                    <tr class="text-center align-middle"> <td colspan="3"> Không có kết quả nào được tìm thấy !</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+
+    <nav aria-label="navigation">
+        <ul class="pagination justify-content-end mb-4">
+            <li class="sum-paginator" >Trang {{ list_per.number }}/{{ list_per.paginator.num_pages }} </li>
+            {% if list_per.has_previous %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% url_replace request 'page' list_per.previous_page_number %}">
+                        <i class="fas fa-angle-left"></i>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">
+                        <i class="fas fa-angle-left"></i>
+                        <span class="sr-only">Previous</span>
+                    </a>
+                </li>
+            {% endif %}
+
+            {% for i in list_per.paginator.page_range %}
+                {% if list_per.number == i %}
+                    <li class="page-item active">
+                        <a class="page-link" href="?{% url_replace request 'page' i %}">{{ list_per.number }}</a>
+                    </li>
+                {% elif i > list_per.number|add:'-5' and i < list_per.number|add:'5' %}
+                    <li class="page-item">
+                        <a class="page-link" href="?{% url_replace request 'page' i %}">{{ i }}</a>
+                    </li>
+                {% endif %}
+            {% endfor %}
+
+            {% if list_per.paginator.num_pages > list_per.number|add:'4' %}
+{#                <li><a class="page-link" href="?page={{ page_obj.number|add:'5' }}">&hellip;</a></li>#}
+                <li><a class="page-link" href="?{% url_replace request 'page' list_per.number|add:'5' %}">&hellip;</a></li>
+            {% endif %}
+
+            {% if list_per.has_next %}
+                <li class="page-item">
+                    <a class="page-link" href="?{% url_replace request 'page' list_per.next_page_number %}">
+                        <i class="fas fa-angle-right"></i>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            {% else %}
+                <li class="page-item disabled">
+                    <a class="page-link" href="#">
+                        <i class="fas fa-angle-right"></i>
+                        <span class="sr-only">Next</span>
+                    </a>
+                </li>
+            {% endif %}
+        </ul>
+    </nav>
+    
+    <!-- Modal -->
+    <div class="modal fade" id="modal_add_permission" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                    <div class="modal-header">
+                            <h5 class="modal-title">Thêm phân quyền chức năng</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="alert-danger div-message-error-add-per" role="alert"></div>
+                        <form id="form_add_per">
+                            {% csrf_token %}
+                            <div class="form-group">
+                              <label for=""></label>
+                              <input type="text" name="name-per" id="" class="form-control" placeholder="" aria-describedby="helpId">
+                              <input type="hidden" name="message" value="add"> 
+                              <small id="helpId" class="text-muted">Tên phân quyền chức năng mới không được trùng lặp!!</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info btn-add-per"><i class="fas fa-save  "></i>Lưu</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-undo  "></i> Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Modal edit -->
+    <div class="modal fade" id="modal_edit_permission" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                    <div class="modal-header">
+                            <h5 class="modal-title">Sửa phân quyền chức năng</h5>
+                                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                                    <span aria-hidden="true">&times;</span>
+                                </button>
+                        </div>
+                <div class="modal-body">
+                    <div class="container-fluid">
+                        <div class="alert-danger div-message-error-edit-per" role="alert"></div>
+                        <form id="form_edit_per">
+                            {% csrf_token %}
+                            <div class="form-group">
+                              <label for=""></label>
+                              <input type="text" name="name-per-edit" id="" class="form-control" placeholder="" aria-describedby="helpId">
+                              <input type="hidden" name="message" value="edit"> 
+                              <input type="hidden" name="id_per" value=""> 
+                              <small id="helpId" class="text-muted">Tên phân quyền chức năng mới không được trùng lặp!!</small>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-info btn-submit-edit-per"><i class="fas fa-save  "></i>Lưu</button>
+                    <button type="button" class="btn btn-danger" data-dismiss="modal"><i class="fas fa-undo  "></i> Hủy</button>
+                </div>
+            </div>
+        </div>
+    </div>
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        var thisPer = ''
+        $('.btn-add-per').on('click', function(){
+            var form = new FormData(document.getElementById('form_add_per'))
+            $.ajax({
+                url : '{% url 'admin_permission'  %}' ,
+                type : 'POST',
+                data : form,
+                processData: false,
+                contentType: false,
+                success : function (data) {
+                    if (data.message_error){
+                        $('.div-message-error-add-per').html(data.message_error)
+                    }
+                    else {
+                        $('#modal_add_permission').modal('hide')
+                        {#$('table tbody').append('<tr>' +#}
+                        {#    '<td scope="col"> '+(parseInt($('table tr:last td:first').text())+1)+'</td>' +#}
+                        {#    '<td scope="col">'+data.name_per+'</td>' +#}
+                        {#    '<td scope="col" class="text-center"> ' +#}
+                        {#        '<a type="button" class="btn-edit-per btn btn-outline-info" title="Sửa thông tin phân quyền"  data-placement="top" data-id_per = "'+data.new_per_id+'" data-name_per_edit = "'+data.name_per+'" ><i class="far fa-edit"></i> </a> ' +#}
+                        {#        '<a type="button" class="btn-delete-per btn btn-outline-info" title="Xóa phân quyền" data-toggle="tooltip" data-placement="top" data-message="reset  " data-id_per = "'+data.new_per_id+'" > <i class="fas fa-recycle"></i> </a> ' +#}
+                        {#    '</td></tr>')#}
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Thêm phân quyền chức năng mới thành công!',
+                            showConfirmButton: true,
+                        })
+                        window.location.reload()
+                    }
+                },
+                error: function (data) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',
+                    })
+                }
+
+            })
+        })
+
+        $('table tbody').on('click', '.btn-edit-per', function(){
+            thisPer = $(this)
+            $("#modal_edit_permission").modal('show')
+            $('.div-message-error-edit-per').html('')
+            $(":input[name = name-per-edit]").val($(this).data('name_per_edit'))
+            $(":input[name = id_per]").val($(this).data('id_per'))
+        })
+
+        $('.btn-submit-edit-per').on('click', function(){
+            var formEdit = new FormData(document.getElementById('form_edit_per'))
+            $.ajax({
+                url : '{% url 'admin_permission'  %}' ,
+                type : 'POST',
+                data : formEdit,
+                processData: false,
+                contentType: false,
+                success : function (data) {
+                    if (data.message_error){
+                        $('.div-message-error-edit-per').html(data.message_error)
+                    }
+                    else {
+                        console.log(thisPer.closest('tr').find('td:nth-child(2)').text())
+                        console.log(thisPer.data('name_per_edit'))
+                        thisPer.closest('tr').find('td:nth-child(2)').text(data.name_per)
+                        thisPer.data('name_per_edit',data.name_per)
+                        $('#modal_edit_permission').modal('hide')
+                        Swal.fire({
+                            icon: 'success',
+                            title: 'Sửa phân quyền chức năng mới thành công!',
+                            showConfirmButton: true,
+                        })
+                    }
+                },
+                error: function (data) {
+                    Swal.fire({
+                        icon: 'error',
+                        title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',
+                    })
+                }
+
+            })
+        })
+
+        $('table tbody').on('click' , '.btn-delete-per', function(){
+            thisDeletePer = $(this)
+            Swal.fire({
+            title: 'Bạn có chắc chắn?',
+            text: "Muốn xóa phân quyền chức năng này và mọi thứ liên quan đến nó!",
+            icon: 'warning',
+            showCancelButton: true,
+            confirmButtonColor: '#3085d6',
+            cancelButtonColor: '#d33',
+            confirmButtonText: 'Có , Tôi muốn!',
+            cancelButtonText: 'Hủy'
+            }).then((result) => {
+            if (result.value) {
+                $.ajax({
+                    'url' : '{% url 'admin_permission' %}',
+                    'type' : 'post',
+                    'data' : {
+                        'message' : 'delete',
+                        'id_per' : $(this).data('id_per'),
+                        'csrfmiddlewaretoken' : '{{ csrf_token }}'
+                    },
+                    success: function(data){
+                        if(data.message_success){
+                            thisDeletePer.closest('tr').remove()
+                            $('table tbody tr').each(function(index, e){
+                                $(this).find('td:first').text(index+1)
+                            })
+                            Swal.fire(
+                            'Xóa thành công!',
+                            'success'
+                            )
+                        }
+                        else{
+                            Swal.fire(
+                            'Đã xảy ra lỗi vui lòng thử lại sau!',
+                            'warning'
+                            )
+                        }
+                    },
+                    error : function(data){
+
+                    }
+
+                })
+            }
+            })
+        })
+
+    </script>
+{% endblock %}

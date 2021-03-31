@@ -1,0 +1,283 @@
+{% extends 'admin/base_admin.html' %}
+{% load static %}
+{% load pagination %}
+{% block add_css %}
+    <style>
+        .box_search{
+            padding: 10px;
+            margin: 10px;
+            border: 1px solid #1c7430;
+        }
+        .i-small-require {
+            font-size: 8px !important;
+            color: red !important;
+        }
+    </style>
+{% endblock %}
+
+{% block admin_function %}
+    <a class="btn btn-outline-info" href="{% url 'admin_user' %}"> <i class="fas fa-user  "></i> Xem toàn bộ người dùng</a>
+{% endblock %}
+
+{% block active_user %}
+    <a href="{% url 'admin_user' %}" class="list-group-item list-group-item-action bg-light nav-link-active"><i class="fas fa-user-alt"></i> Quản lý
+        người dùng</a>
+{% endblock %}
+
+{% block admin_content %}
+    <div class="container  mt-5">
+        <h4 class="mb-4">Sửa thông tin người dùng</h4>
+        <form method="post" action="{% url 'admin_user_edit' id %}" id="form_edit_user" autocomplete="off">
+            {% csrf_token %}
+            <div>
+                <div class="alert-danger div-message-error-add-user  m-2 alert-dismissible">
+                </div>
+                {% if messages %}
+                    {% for message in messages %}
+                        <div class="alert {% if message.tags == 'error' %} alert-danger {% else %} alert-success {% endif %} alert-dismissible">
+                            <button type="button" class="close" data-dismiss="alert">×</button>
+
+                            {{ message }}
+                        </div>
+                    {% endfor %}
+
+                {% endif %}
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Tên đăng nhập
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {{ form_edit_user.username }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Chọn mô hình
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {{ form_edit_user.site }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Vai trò
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+{#                        {{ form_edit_user.role }}#}
+                        <select class="form-control select-edit-role" name="role">
+                            {% for role in find_role %}
+                                {% if role.id == role_id %}
+                                    <option selected value="{{ role.id }}">{{ role.name }}</option>
+                                {% else %}
+                                    <option  value="{{ role.id }}">{{ role.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Chọn Đơn vị
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+{#                        {{ form_edit_user.cus }}#}
+                        <select class="form-control select-edit-cus" name="cus">
+                            {% for cus in find_cus %}
+                                {% if cus.id == cus_id %}
+                                    <option selected value="{{ cus.id }}">{{ cus.name }}</option>
+                                {% else %}
+                                    <option  value="{{ cus.id }}">{{ cus.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+                    </div>
+                </div>
+                </div>
+{#                <div class="temp-ttpp-hiden -none">#}
+{#                    <div class="form-group row">#}
+{#                        <label for="colFormLabel" class="col-md-3 col-form-label">Loại Trung Tâm Phân Phối#}
+{#                            <span class="text-danger">*</span> #}
+{#                        </label>#}
+{#                        <div class="col-md-9">#}
+{#                            {{ form_edit_user.type_ttpp }}#}
+{#                            <small id="emailHelp" class="form-text text-muted">Bắt buộc nếu là TTPP !</small>#}
+{#                        </div>#}
+{#                    </div>#}
+{#                </div>#}
+                <div class="temp-manager-hiden ">
+                    <div class="form-group row">
+                        <label for="colFormLabel" class="col-md-3 col-form-label">Đơn vị Quản Lý
+                            <span class="text-danger">*</span>
+                        </label>
+                        <div class="col-md-9">
+{#                            {{ form_edit_user.cus_manager }}#}
+                            <select class="form-control select-edit-cus-manager selectpicker" required multiple name="cus_manager" data-actions-box="true" data-live-search="true" >
+                            {% for cus in find_cus_manager %}
+                                {% if cus.id in cus_manager %}
+                                    <option selected value="{{ cus.id }}" data-subtext="{{ cus.site.name }}">{{ cus.name }}</option>
+                                {% else %}
+                                    <option  value="{{ cus.id }}" data-subtext="{{ cus.site.name }}">{{ cus.name }}</option>
+                                {% endif %}
+
+                            {% endfor %}
+
+                        </select>
+{#                            <small id="emailHelp" class="form-text text-muted">Không bắt buộc nếu là TTPP !</small>#}
+                        </div>
+                    </div>
+                </div>
+
+{#                <div class="form-group row">#}
+{#                    <label for="colFormLabel" class="col-md-3 col-form-label">Mật khẩu#}
+{#                        <span class="text-danger">*</span> </label>#}
+{#                    <div class="col-md-9">#}
+{#                        {{ form_edit_user.password }}#}
+{#                    </div>#}
+{#                </div>#}
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Email
+{#                        <span class="text-danger">*</span> #}
+                    </label>
+                    <div class="col-md-9">
+                        {{ form_edit_user.email }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Số điện thoại
+{#                        <span class="text-danger">*</span>#}
+                    </label>
+                    <div class="col-md-9">
+                        {{ form_edit_user.phone_number }}
+                    </div>
+                </div>
+                <div class="form-group row">
+                    <label for="colFormLabel" class="col-md-3 col-form-label">Chụp hình
+                        <span class="text-danger">*</span> </label>
+                    <div class="col-md-9">
+                        {{ form_edit_user.is_take_photo }}
+                    </div>
+                </div>
+        </form>
+        <div class="modal-footer d-flex justify-content-end">
+            <button type="submit" form="form_edit_user" class="btn btn-outline-success  d-none btn-sumit-user">Lưu</button>
+            <button type="button" form="form_edit_user" class="btn btn-info btn-submit-edit-user"><i class="fas fa-save"></i> Lưu</button>
+            <button type="reset" form="form_edit_user" class="btn btn-danger"><i class="fas fa-undo"></i> Hủy</button>
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block add_js %}
+    <script>
+        $(document).ready(function () {
+            {#$('form .select-edit-cus-manager').val({{ cus_manager }})#}
+            {#console.log({{ cus_manager }})#}
+            {#console.log(typeof ({{ cus_manager }}))#}
+            {#$('form .select-edit-cus-manager').selectpicker()#}
+
+
+            $('.select-edit-site').on('change', function () {
+                $.ajax({
+                    url : '{% url 'ajax_change_option_site_add_user'  %}' ,
+                    type : 'get',
+                    data : {
+                        'site_id' : $('.select-edit-site').val()
+                    },
+                    success : function (data) {
+                        console.log(data)
+                        html_role = ""
+                        html_cus = ""
+                        data.list_rol_site.forEach(function (element) {
+                            html_role += "<option value='"+element[0]+"'> " +element[1]+"</option>"
+                        })
+                        $('.select-add-role').html(html_role)
+                        data.list_cus_site.forEach(function (element) {
+                            html_cus += "<option value='"+element[0]+"'> " +element[1]+"</option>"
+                        })
+                        $('form .select-edit-cus-manager').selectpicker('destroy')
+                        $('form .select-edit-cus-manager').html(html_cus)
+                        $('form .select-edit-cus').html(html_cus)
+                        $('form .select-edit-role').html(html_role)
+                        $('form .select-edit-cus-manager').selectpicker()
+                    },
+                    error: function (data) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',
+                        })
+                    }
+
+                })
+            })
+            ///add  new user
+
+
+            //edit user
+            $('.btn-edit-user').on('click', function () {
+                $.ajax({
+                    url : '{% url 'admin_user_edit'  %}' ,
+                    type : 'GET',
+                    data : {
+                        'user_id' : $(this).data('iduser')
+                    },
+                    success : function (data) {
+                        console.log(data.user[0].type_ttpp)
+                        $('.input-edit-username').val(data.user[0].username)
+                        $('.input-edit-email').val(data.user[0].email)
+                        $('.input-edit-phone-number').val(data.user[0].phone_number)
+                        $('.input-edit-password').val(data.user[0].password)
+                        $('.select-edit-role').val(data.user[0].role_id)
+                        $('.select-edit-cus').val(data.user[0].cus_id)
+                        if(data.user[0].role_id == 10){
+                            $('.select-edit-type-ttpp').val(data.user[0].type_ttpp)
+                            $('.custom-add-edit-user').html($('.temp-ttpp-hiden-edit').html())
+                        }
+                        else if (data.user[0].role_id == 11) {
+                            $('.custom-add-edit-user').html($('.temp-manager-hiden-edit').html())
+                            try {
+                                var arr = JSON.parse("[" + data.user[0].manager_cus + "]")
+                            }
+                            catch (e) {
+                                var arr = []
+                            }
+                            $('.select-edit-cus-manager').val(arr)
+                            $('form .select-edit-cus-manager').selectpicker()
+                        }
+                        else {
+                            $('.custom-add-edit-user').html($('.temp-accouting-hiden-edit').html())
+                        }
+                        $('#modal_edit_user').modal('show')
+                    },
+                    error: function (data) {
+                        Swal.fire({
+                            icon: 'error',
+                            title: 'Đã xảy ra lỗi, vui lòng thử lại sau. Xin cám ơn!!',
+                        })
+                    }
+
+                })
+            })
+
+
+            $('.btn-submit-edit-user').on('click', function () {
+                Swal.fire({
+                    title: 'Bạn có chắc chắn?',
+                    text: "Sửa thông tin người dùng này ?",
+                    icon: 'warning',
+                    showCancelButton: true,
+                    confirmButtonColor: 'green',
+                    cancelButtonColor: '#d33',
+                    confirmButtonText: 'Có, chắc chắn',
+                    cancelButtonText: 'Không',
+                }).then((result) => {
+                    if (result.value) {
+                        $('#form_edit_user ').submit()
+                    }
+                })
+            })
+
+
+        })
+    </script>
+{% endblock %}

@@ -1,0 +1,49 @@
+{% extends 'report/base_report.html' %}
+{% load static %}
+{% block add_css_detail %}
+
+{% endblock %}
+
+{% block detail_list_image_casorel %}
+    <li>
+        <img src="http://sgc.qlhd.vn/static/img/200714/20200714_145358_VBPO_694_1_66_1_01_false_0094.jpg" alt="Picture 1">
+    </li>
+    <li>
+        <img src="http://sgc.qlhd.vn/static/img/200714/20200714_114408_1_4_6_1_1_01_false_0002.jpg" alt="Picture 2">
+    </li>
+    <li>
+        <img src="http://sgc.qlhd.vn/static/img/200714/20200714_114408_1_4_6_1_1_01_false_0002.jpg" alt="Picture 2">
+    </li>
+    <li>
+        <img src="http://sgc.qlhd.vn/static/img/200714/20200714_114408_1_4_6_1_1_01_false_0002.jpg" alt="Picture 2">
+    </li>
+{% endblock %}
+
+{% block detail_box_function_top %}
+    <div class="row box-function-top border-success">
+        <div class="col-md-4">
+            Trạng thái HĐ: <span class="font-weight-bold">S</span>
+        </div>
+        <div class="col-md-4">
+            Trạng thái BB: <span class="font-weight-bold">P</span>
+        </div>
+        <div class="col-md-4">
+            Mô tả BB: <span class="font-weight-bold">Biên bản chưa được xử lí</span>
+        </div>
+    </div>
+    <div class="row box-function-top border-success ">
+        <div class="col-md-4 text-center">
+            <button class="btn btn-success">Biên bản đã xử lí <i class="fas fa-check"></i></button>
+        </div>
+        <div class="col-md-4 text-center">
+            <button class="btn btn-info">In biên bản <i class="fas fa-print"></i></i></button>
+        </div>
+        <div class="col-md-4 text-center">
+            <button class="btn btn-danger">Hủy biên bản  <i class="fas fa-trash"></i></button>
+        </div>
+    </div>
+{% endblock %}
+
+{% block add_js_detail %}
+
+{% endblock %}
