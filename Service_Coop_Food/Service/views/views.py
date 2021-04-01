@@ -549,7 +549,7 @@ def get_new_from_old():
         sql_old_user = cur.execute("SELECT id, name from dbo.AllUserCoop ").fetchall()
     dict_old_name_cus = {}
     dict_old_type_product = {}
-    dict_old_user = {}
+    dict_old_user = {}   
 
     dict_new_name_cus = {}
     dict_new_type_product = {}

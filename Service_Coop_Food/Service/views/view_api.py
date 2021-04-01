@@ -323,9 +323,12 @@ def Upload_HDDT_TTPP(request):
             cursor.execute("Insert into dbo.["+idcus+"|bill](listcus_id,status_id,type_product_id,group_hd,image_name,po_number,vendor_number,sum_po,tax_number,symbol,bill_number,city_name,city_address,bill_date,ket_thuc_dot_number,upload_date,result_check,result_check_luoi,is_qa,is_hddt,user_id_up,src_pdf,src_xml,src_image) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", [
                         idcus, status_id, typehd, group_hd, imgname.strip(), mapo, mavender, tongtien, mst, khhd, shd, tencty, diachi, ngayhd, ktd, upday, thue_str, luoi, tickqa, hddt, request.user.id, "pdf/"+invoice_Folder+"/"+filenamePDF, "pdf/"+invoice_Folder+"/"+filenameXML, "img/"+invoice_Folder+"/"+filenameIMG]).commit()
     except Exception as Error:
-        os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF)
-        os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenameXML)
-        os.remove(dir_storage+"/img/"+invoice_Folder+"/"+filenameIMG)
+        if os.path.isfile (dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF):
+            os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF)
+        if os.path.isfile (dir_storage+"/pdf/"+invoice_Folder+"/"+filenameXML):
+            os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenameXML)
+        if os.path.isfile (dir_storage+"/img/"+invoice_Folder+"/"+filenameIMG):
+            os.remove(dir_storage+"/img/"+invoice_Folder+"/"+filenameIMG)
         return JsonResponse({"message": str(Error)}, status=400)
     return JsonResponse({"message": {"strInvoice": str(strInvoice), "filenamePDF": filenamePDF, "filenameXML": filenameXML, "filenameIMG": filenameIMG}}, status=200)
 
