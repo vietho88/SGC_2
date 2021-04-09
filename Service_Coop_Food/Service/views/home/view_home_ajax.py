@@ -410,9 +410,9 @@ def export_excel_report_home(request):
             for index, bill in enumerate(bills, start=1):
                 result_split = bill.result_check.split('‡')
                 try:
-                    money_before_tax = '{:,.0f}'.format(int(result_split[16]))
-                    money_tax = '{:,.0f}'.format(int(result_split[17]))
-                    money_after_tax = '{:,.0f}'.format(int(result_split[18]))
+                    money_before_tax = '{:,.0f}'.format(float(result_split[16]) if result_split[16] !='' else 0 )
+                    money_tax = '{:,.0f}'.format(float(result_split[17]) if result_split[17] !='' else 0 )
+                    money_after_tax = '{:,.0f}'.format(float(result_split[18]) if result_split[18] !='' else 0 )
                     name_product = bill.result_check_luoi.split('†')[1]
                 except:
                     pass
@@ -454,7 +454,7 @@ def export_excel_report_home(request):
         else:
             return JsonResponse({
                 'message': message_return,
-                'current_full_url': current_full_url.replace('http://127.0.0.1:5085/', 'http://sgc02.qlhd.vn/')
+                'current_full_url': current_full_url.replace('http://127.0.0.1:5085/', 'https://sgc02.qlhd.vn/')
             })
 
 @allowed_permission(allowed_per = 'Xuất thống kê')
@@ -724,12 +724,12 @@ def print_pdf_pom(request):
         if message == 'get_type_product':
             if type == 'pom':
                 with connection.cursor() as cur:
-                    list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from ["+str(cus)+"|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where receiver_number is not null and receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 7 and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
+                    list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from ["+str(cus)+"|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where receiver_number is not null and receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 8 and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
             else:
                 with connection.cursor() as cur:
-                    id_r = StatusBill.objects.get(symbol = 'R').id
+                    id_r = StatusBill.objects.get(symbol = 'M').id
                     list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from [" + str(
-                        cus) + "|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where status_id = "+str(id_r)+"  and po_number like 'I%' and upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 7  and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
+                        cus) + "|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where status_id = "+str(id_r)+"  and po_number like 'I%' and upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 8  and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
             list_return = [ list(x) for x in list_type_product]
 
             return JsonResponse({
@@ -746,7 +746,7 @@ def print_pdf_pom(request):
                         date_find_to) + "'  and ket_thuc_dot_number <> 100 and type_product_id in ("+list_product+") order by ket_thuc_dot_number  ").fetchall()
             else:
                 with connection.cursor() as cur:
-                    id_r = StatusBill.objects.get(symbol='R').id
+                    id_r = StatusBill.objects.get(symbol='M').id
                     list_type_product = cur.execute("SELECT distinct ket_thuc_dot_number from [" + str(
                         cus) + "|bill] where status_id = " + str(
                         id_r) + "  and po_number like 'I%' and upload_date > '" + str(
@@ -767,7 +767,7 @@ def print_pdf_pom(request):
                         date_find_from) + "'  and upload_date < '" + str(
                         date_find_to) + "'  and ket_thuc_dot_number in ("+list_end_batch+") and type_product_id in (" + list_product + ")   and is_po <> 1 "
             else:
-                id_r = StatusBill.objects.get(symbol='R').id
+                id_r = StatusBill.objects.get(symbol='M').id
                 where_clause = "status_id = " + str(
                         id_r) + "  and po_number like 'I%' and upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
@@ -797,11 +797,11 @@ def print_pdf_pom(request):
                 data = []
                 for group in all_group_bill_limit:
                     try:
-                        src_receiver = group.src_receiver.split('|')[0]
+                        src_receiver = group.src_receiver.split('|')[0] 
                         if os.path.exists(base_path + src_receiver):
                             temp = {
                                 'group': group.group_hd,
-                                'reciever_number': group.receiver_number.split('|')[0],
+                                'reciever_number': group.receiver_number.split('|')[0] if group.receiver_number else '' ,
                                 'type_product': group.name_type.split('|')[0],
                                 'bill_number': group.bill_number.split('|')[0],
                                 'end_batch': group.end_batch_number.split('|')[0],
@@ -825,7 +825,7 @@ def print_pdf_pom(request):
         list_id = ','.join( [ "'" + str(x) + "'" for x in (request.POST.getlist('input_id_print[]', ['0']))])
         with connection.cursor() as cursor:
             list_exist = cursor.execute(
-                "select distinct  src_receiver from [" + str(id_cus) + "|bill] where group_hd in (" + str(list_id) + ") and is_po <> 1").fetchall()
+                "select distinct  src_receiver from [" + str(id_cus) + "|bill] where group_hd in (" + str(list_id) + ") and is_po <> 1 ").fetchall()
 
         base_path = settings.MEDIA_ROOT
         base_forder = base_path + 'pdf_merge/' + str(request.user.cus_id)
@@ -836,7 +836,10 @@ def print_pdf_pom(request):
         from PyPDF2 import PdfFileMerger
         merger = PdfFileMerger()
         for pdf in list_exist:
-            merger.append(base_path + pdf.src_receiver)
+            #if pdf.src_receiver:
+            if os.stat(base_path + pdf.src_receiver).st_size>500:
+                merger.append(base_path + pdf.src_receiver)
+            
         merger.write(base_forder + path_save)
         merger.close()
         return JsonResponse({

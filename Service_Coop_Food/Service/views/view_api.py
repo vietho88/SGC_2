@@ -14,7 +14,7 @@ from django.views.decorators.csrf import csrf_exempt
 from django.db import transaction
 from django.contrib import messages
 import datetime
-from django.db import  connection
+from django.db import  connection,connections
 from django.http import Http404
 from django.db.transaction import atomic
 from rest_framework.views import APIView
@@ -28,7 +28,6 @@ import pandas as pd
 from django.conf import settings
 from django.core.files.storage import FileSystemStorage
 import os
-
 class HelloView(APIView):
     # permission_classes = (IsAuthenticated,)
     def get(self, request):
@@ -125,35 +124,47 @@ def api_export_excel(request):
         })
 
     for bill in sql_list_bill:
-        temp = [bill.status_rpa, bill.name_cus, bill.name, bill.symbol, bill.bill_number, bill.bill_date, bill.tax_number, bill.city_name, bill.city_address] + bill.result_check_luoi.split('†') + bill.result_check.split('‡')[0:-3]  + ['', bill.po_number, bill.sum_po,'QA' if bill.is_qa else '', bill.vendor_number, bill.group_hd, bill.image_name, bill.receiver_number, bill.upload_date]
+        list_=bill.result_check_luoi.split('‡') if bill.result_check_luoi  else ['†††††††']  
+        lsa1='+'.join(list(map(lambda x: x.split('†')[0], list_)))
+        lsa2=list_[0].split('†')[1]
+        lsa3=''
+        lsa4='+'.join(list(map(lambda x: x.split('†')[3], list_)))
+        lsa5='+'.join(list(map(lambda x: x.split('†')[4], list_)))
+        lsa6=''
+        lsa7=''
+        lsa8=''
+        tong = '‡'.join([lsa1,lsa2,lsa3,lsa4,lsa5,lsa6,lsa7,lsa8])
+        if '|' in bill.result_check:
+            temp = [bill.status_rpa, bill.name_cus, bill.name, bill.symbol, bill.bill_number, bill.bill_date, bill.tax_number, bill.city_name, bill.city_address] + tong.split('‡') + bill.result_check.split('|')[0].split('‡')[0:-1]  + ['', bill.po_number, bill.sum_po,'QA' if bill.is_qa else '', bill.vendor_number, bill.group_hd, bill.image_name, bill.receiver_number, bill.upload_date]
+        else:
+            temp = [bill.status_rpa, bill.name_cus, bill.name, bill.symbol, bill.bill_number, bill.bill_date, bill.tax_number, bill.city_name, bill.city_address] + tong.split('‡') + bill.result_check.split('‡')  + ['', bill.po_number, bill.sum_po,'QA' if bill.is_qa else '', bill.vendor_number, bill.group_hd, bill.image_name, bill.receiver_number, bill.upload_date]
         list_data_bill.append(temp)
         list_group.append(str(bill.group_hd))
     str_list_group = str(','.join(["'" + x + "'" for x in list_group]))
     with connection.cursor() as cursor:
-        sql_list_po = cursor.execute("SELECT group_hd, STRING_AGG(bill_number, ',') as bill_number,  STRING_AGG(result_check_luoi ,',') as result_check_luoi, STRING_AGG(is_po ,',')\
-                            as is_po, STRING_AGG(is_qa ,',') as is_qa,  po_number  FROM dbo.[" + str(id_cus) + "|bill] WHERE  \
-                           group_hd in ("+str_list_group+")  group by group_hd, po_number  ").fetchall()
+        sql_list_po = cursor.execute("SELECT group_hd,bill_number, result_check_luoi,is_po\
+                            ,  is_qa,  po_number  FROM dbo.[" + str(id_cus) + "|bill] WHERE  \
+                           group_hd in ("+str_list_group+") and is_po=1   ").fetchall()
     for po in sql_list_po:
-        if '1' in po.is_po:
+        if po.is_po:
             po_number = po.po_number
-            is_qa  = po.is_qa.split(',')[0]
-            bill_number = ','.join(list(set((filter(None, (po.bill_number.split(',')))))))
+            is_qa  = po.is_qa
+            bill_number = po.bill_number
             for item in  po.result_check_luoi.split('‡'):
-                temp = [ po_number ] + item.split('†')[:5] + ['QA' if is_qa == 1  else '', bill_number]
+                temp = [ po_number ] + item.split('†')[:5] + ['QA' if is_qa == True  else '', bill_number]
                 list_data_po.append(temp)
     df_bill = pd.DataFrame(list_data_bill,
                              columns=["Status", "Tên doanh nghiệp", "Số mẫu hóa đơn", "Ký hiệu hóa đơn",
                                       "Số hóa đơn", "Ngày", "Mã số thuế người bán/người mua", "Công Ty",
                                       "Địa chỉ", "Mã hàng hóa/Dịch vụ", "Tên hàng hóa/Dịch vụ/Diễn giải",
                                       "Đơn vị tính", "Số lượng", "Đơn giá", "Thuế VAT Mặt Hàng (%)",
-                                      "Tiền thuế VAT Mặt hàng", "Thành tiền", "Cộng tiền HÀng Hóa(0%)",
-                                      "Thuế VAT hóa đơn (0%)", "Tiền thuế VAT hoá đơn (0%)",
-                                      "Tổng tiền thanh toán (0%)", "Cộng tiền HÀng Hóa(5%)",
-                                      "Thuế VAT hóa đơn (5%)", "Tiền thuế VAT hoá đơn (5%)",
-                                      "Tổng tiền thanh toán (5%)", "Cộng tiền HÀng Hóa(10%)",
-                                      "Thuế VAT hóa đơn (10%)", "Tiền thuế VAT hoá đơn (10%)",
-                                      "Tổng tiền thanh toán (10%)", "Cộng tiền HÀng Hóa(...%)",
-                                      "Thuế VAT hóa đơn (...%)", "Tiền thuế VAT hoá đơn (...%)",
+                                      "Tiền thuế VAT Mặt hàng", "Thành tiền", "Thuế VAT hóa đơn (0%)","Cộng tiền HÀng Hóa(0%)",
+                                      "Tiền thuế VAT hoá đơn (0%)",  "Tổng tiền thanh toán (0%)", 
+                                      "Thuế VAT hóa đơn (5%)","Cộng tiền HÀng Hóa(5%)", "Tiền thuế VAT hoá đơn (5%)",
+                                      "Tổng tiền thanh toán (5%)", 
+                                      "Thuế VAT hóa đơn (10%)","Cộng tiền HÀng Hóa(10%)", "Tiền thuế VAT hoá đơn (10%)",
+                                      "Tổng tiền thanh toán (10%)","Thuế VAT hóa đơn (...%)", "Cộng tiền HÀng Hóa(...%)",
+                                       "Tiền thuế VAT hoá đơn (...%)",
                                       "Tổng tiền thanh toán (...%)", "Tổng cộng tiền Hàng Hóa",
                                       "Tổng cộng tiền thuế VAT hoá đơn", "Tổng cộng tiền thanh toán",
                                       "Hình thức thanh toán", "Mã PO", "Tổng tiền PO", "Thực Trạng",
@@ -302,7 +313,7 @@ def Upload_HDDT_TTPP(request):
         #idcus_old = arrcon[10]
         ktd = arrcon[11]
         typehd = "10"
-        hddt = arrcon[13]
+        hddt = 1
         # qa = ""
         tickqa = "0"
         status = arrcon[14]
@@ -331,7 +342,55 @@ def Upload_HDDT_TTPP(request):
             os.remove(dir_storage+"/img/"+invoice_Folder+"/"+filenameIMG)
         return JsonResponse({"message": str(Error)}, status=400)
     return JsonResponse({"message": {"strInvoice": str(strInvoice), "filenamePDF": filenamePDF, "filenameXML": filenameXML, "filenameIMG": filenameIMG}}, status=200)
+@api_view(['POST'])
+#@permission_classes([IsAuthenticated])
+def Upload_HDDT_NCC(request):
+    dir_storage = settings.MEDIA_ROOT  # đường dẫn folder lưu ảnh, pdf, xml
+    pathPDF = request.FILES.get('pathPDF', None)
+    pathXML = request.FILES.get('pathXML', None)
+    image = request.POST.get('image', '')
+    idcus_old = image.split('_')[5]
+    ngayhd = image[2:8]
+    with connection.cursor() as cursor:
+        try:
+            idcus = cursor.execute("SELECT  Id from [Service_listcus] WHERE id_old =%s ", [idcus_old]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "Store Number Error "}, status=400)
+    # listBody = ['pathPDF', 'pathXML']
+    # listError = []
+    # for iBody in listBody:
+    #     if (eval(iBody) is None) or (eval(iBody) == []):
+    #         listError.append(iBody)
+    # if listError != []:
+    #     return JsonResponse({"message": {"Not have keys": str(', '.join(listError))}}, status=400)
+    try:        
+        hddt = 1 
 
+        invoice_Folder = ngayhd
+        if pathPDF:
+            fs_PDF = FileSystemStorage(
+                location=dir_storage+"/pdf/"+invoice_Folder, base_url=dir_storage+"/pdf/"+invoice_Folder)
+            filenamePDF = fs_PDF.save(pathPDF.name, pathPDF)
+            src_pdf ="pdf/"+invoice_Folder+"/"+filenamePDF
+        else:
+            src_pdf =None
+        if pathXML:
+            fs_XML = FileSystemStorage(
+                location=dir_storage+"/pdf/"+invoice_Folder, base_url=dir_storage+"/pdf/"+invoice_Folder)
+            filenameXML = fs_XML.save(pathXML.name, pathXML)  
+            src_xml = "pdf/"+invoice_Folder+"/"+filenameXML
+        else:
+            src_xml = None
+        with connection.cursor() as cursor:
+            cursor.execute("update dbo.["+str(idcus)+"|bill] set is_hddt =%s,src_pdf = %s,src_xml=%s where image_name = %s ", [
+                        hddt,src_pdf,src_xml,image]).commit()
+    except Exception as Error:
+        if os.path.isfile (dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF):
+            os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF)
+        if os.path.isfile (dir_storage+"/pdf/"+invoice_Folder+"/"+filenameXML):
+            os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenameXML)        
+        return JsonResponse({"message": str(Error)}, status=400)
+    return JsonResponse({"message":  "ok"}, status=200)
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_bill_for_image(request):
@@ -398,12 +457,14 @@ def update_status_hddt(request):
     return JsonResponse({'message': 'success'}, status=200)
 
 @api_view(['POST'])
-@permission_classes([IsAuthenticated])
+#@permission_classes([IsAuthenticated])
 def upload_pdf_receiver(request):
     myfile = request.FILES.get('file_up', '')
     folder = request.POST.get('folder', '')
-    id_cus = request.user.cus_id
-    # id_cus = request.POST.get('id_cus', '')
+    user = request.POST.get('user_web', '')
+    with connection.cursor() as cursor:
+        id_cus = cursor.execute("Select cus_id from dbo.[Service_usercoop] where  username=  %s",[user]).fetchone()[0]
+    #id_cus = request.user.cus_id
     group_hd = request.POST.get('group_hd')
     if  '' in [myfile, folder] or myfile.name.endswith('.pdf') == False :
         return JsonResponse({'message': 'error : No file send or file send not is pdf, check parameter'})
@@ -417,8 +478,17 @@ def upload_pdf_receiver(request):
 
     fs = FileSystemStorage(location=folder_save)  # defaults to   MEDIA_ROOT
     fs.save(myfile.name, myfile)
+    name =myfile.name.split('.pdf')[0]
+    
     with connection.cursor() as cur :
-        cur.execute("UPDATE ["+str(id_cus)+"|bill] set src_receiver = %s where group_hd = %s" , ['pdf_receiver/' + folder + '/' + myfile.name, group_hd]).commit()
+        try:
+            if '_'  in name:
+                cur.execute("UPDATE ["+str(id_cus)+"|bk] set src_receiver = %s where image_name = %s" , ['pdf_receiver/' + folder + '/' + myfile.name, name+'.jpg']).commit()
+            else:
+                cur.execute("UPDATE ["+str(id_cus)+"|bill] set src_receiver = %s where group_hd = %s" , ['pdf_receiver/' + folder + '/' + myfile.name, name]).commit()
+        except:
+            return JsonResponse({'message': 'error'}, status=200)
+            
     return JsonResponse({'message': 'success'}, status=200)
 
 @api_view(['GET'])
@@ -450,6 +520,40 @@ def api_check_exist_bill(request):
                 return JsonResponse({
                     'message': 'Error, Chưa tồn tại bảng trên database'
                 }, safe=False)
+
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def api_check_exist_symbol_number(request):
+    id_cus = request.user.cus_id
+    symboy_number = request.GET.get('symbol_number', '')
+    bill_number = request.GET.get('bill_number', '')
+    if  symboy_number == '' or bill_number == '':
+        return JsonResponse({
+            'message': 'Lỗi, Param gửi lên còn thiếu'
+        }, safe=False)
+    else:
+        with connection.cursor() as cursor:
+            try:
+                sql_check = cursor.execute("SELECT image_name from ["+str(id_cus)+"|bill] WHERE symbol = %s and bill_number = %s and status_id=6",
+                                           [symboy_number, bill_number]).fetchall()
+                if sql_check:
+                    list_image =list(map(lambda x: x[0], sql_check))
+                    return JsonResponse({
+                        'message': 'Thành công',
+                        'image_name': list_image
+                    }, safe=False)
+                else:
+                    return JsonResponse({
+                        'message': 'Tên ảnh không ở trạng thái R'
+                    }, safe=False)
+            except Exception as e:
+                print(e)
+                return JsonResponse({
+                    'message': 'Error, Chưa tồn tại bảng trên database'
+                }, safe=False)
+
+
+
 
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
@@ -519,31 +623,95 @@ def auto_check_miss_po(request):
         dateSearch = datetime.datetime.strptime(strdateSearch, '%d/%m/%Y')
     except:
         return JsonResponse({"message": "dateSearch:dd/mm/yyyy"}, status=400)
-    strings = str(dateSearch.strftime('%y%m%d'))
-    Day = str(int(strings[4:]))
-    txt_miss = ''
-    
+    data = {'reciver':[] }
     foldernow = settings.MEDIA_ROOT + "pdf_receiver/"
     with connection.cursor() as cursor:
         result = cursor.execute(
-            "Select group_hd,po_number,Receiver_number from dbo.[" +str(idcus)+"|bill ] where  day(Upload_date) =" + Day + " and ISNULL(Receiver_number,'') !='' ").fetchall()
+            "Select group_hd,po_number,Receiver_number from dbo.[" +str(idcus)+"|bill ] where  convert(varchar, Upload_date, 103)='"+strdateSearch+"' and ISNULL(Receiver_number,'') !='' ").fetchall()
     for item in result:
         hdprop = item[0]
         dayup = hdprop[2:8]
         path_reciver = foldernow + dayup + '/' + hdprop + '.pdf'
         if os.path.exists(path_reciver) == False:
             if item[1] == '00000000':
-                txt_miss = txt_miss + hdprop + '#' + item[2] + '\n'
+                newresult = {'hdgroup':hdprop,'po':item[2]}
+                data['reciver'].append(newresult)
             else:
-                txt_miss = txt_miss + hdprop + '#' + item[1] + '\n'
+                newresult = {'hdgroup':hdprop,'po':item[1]}
+                data['reciver'].append(newresult)
     
     with connection.cursor() as cursor:
         result = cursor.execute(
-            "select Image_Name,po_number from dbo.[" +str(idcus)+"|bk] where Receiver_number is not null and day(Upload_date) =" + Day + " and Receiver_number !=''").fetchall()
+            "select Image_Name,po_number from dbo.[" +str(idcus)+"|bk] where Receiver_number is not null and convert(varchar, Upload_date, 103)='"+strdateSearch+"'  and Receiver_number !=''").fetchall()
     for item in result:
         imagename = item[0]
         dayup = imagename[2:8]
         path_reciver = foldernow + dayup + '/' + imagename.split('.')[0] + '.pdf'
         if os.path.exists(path_reciver) == False:
-            txt_miss = txt_miss + imagename + '#' + item[1] + '\n'
-    return JsonResponse({"message": txt_miss}, status=200)
+            newresult = {'hdgroup':imagename,'po':item[1]}
+            data['reciver'].append(newresult)
+    return JsonResponse(data, status=200)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def insert_po(request):
+    idcus =request.user.cus_id   
+    with connection.cursor() as cursor:
+        try:  
+            store = cursor.execute("SELECT store_number  from [Service_listcus] WHERE Id =%s ", [idcus]).fetchone()[0]
+        except:
+             return JsonResponse({"message": "store is Error"}, status=400)
+    mapo=request.GET.get('mapo') 
+    strdateSearch = request.GET.get('date_up')
+    try:
+        date_up = datetime.datetime.strptime(strdateSearch, '%d/%m/%Y')
+    except:
+        return JsonResponse({"message": "dateSearch:dd/mm/yyyy"}, status=400)
+    table = str(store)+'|PO'
+    with connections['rpa'].cursor() as cur:
+        try:
+            cur.execute(
+                "Insert into dbo.["+table+"](Ma_PO,Date_Up) values (%s ,%s )",[mapo,date_up]).commit()            
+        except:
+            return JsonResponse({"message":"Error"}, status=200)
+    return JsonResponse({"message":"Ok"}, status=200)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def search_po(request):
+    idcus =request.user.cus_id   
+    with connection.cursor() as cursor:
+        try:  
+            store = cursor.execute("SELECT store_number  from [Service_listcus] WHERE Id =%s ", [idcus]).fetchone()[0]
+        except:
+             return JsonResponse({"message": "store is Error"}, status=400)
+    date_start=request.GET.get('date_start')
+    date_stop = request.GET.get('date_stop')
+    try:
+        date_start_ = datetime.datetime.strptime(date_start, '%d/%m/%Y')
+        date_stop_ = datetime.datetime.strptime(date_stop, '%d/%m/%Y')
+    except:
+        return JsonResponse({"message": "dateSearch:dd/mm/yyyy"}, status=400)
+    table = str(store)+'|PO'
+    date_start_str = date_start_.strftime("%Y-%m-%d %H:%M:%S")
+    date_stop_str = date_stop_.strftime("%Y-%m-%d %H:%M:%S")
+    with connections['rpa'].cursor() as cur:
+        try:
+            result = cur.execute("Select Ma_PO from dbo.["+table+"] where  [Date_Up] >= %s   AND [Date_Up] <= %s",[date_start_str,date_stop_str]).fetchall() 
+            list_po=list(map(lambda x: x[0], result))           
+        except:
+            return JsonResponse({"message":"Error"}, status=200)
+    return JsonResponse({"Ma_PO":list_po}, status=200)
+@api_view(['GET'])
+@permission_classes([IsAuthenticated])
+def update_po(request):
+	idcus =request.user.cus_id 
+	get_img = request.GET.get('image_name')
+	get_SoPO = request.GET.get('So_PO')
+	get_SoBK = request.GET.get('So_BK')
+	get_SoReceiver = request.GET.get('So_Receiver')
+	strtable = str(idcus)+'|bk'	
+	with connection.cursor() as cursor:
+		try:
+			cursor.execute("Update dbo.["+strtable+"] set last_change_date = getdate(), po_number = %s, bk_number = %s, receiver_number = %s  where image_name = %s", [get_SoPO, get_SoBK, get_SoReceiver, get_img]).commit()
+		except  :
+			return JsonResponse({"message":"Error"}, status=200)
+	return JsonResponse({"message":"Ok"}, status=200)

@@ -501,6 +501,7 @@ $(document).ready(function () {
 
     $(".btn-export-report-excel").on('click', function () {
         message = $(this).data('message')
+        console.log(message)
         if(message == 'export_excel' &&  $('#select_type_product').val().length == 0){
             alert('Bạn chưa chon ngành hàng !!')
             return false
@@ -509,9 +510,11 @@ $(document).ready(function () {
         if (check_expand){
             check_expand = 'false'
         }
+        
         else {
             check_expand = 'true'
         }
+        console.log(check_expand)
         $.ajax({
             url : '/ajax/home/export_excel_report',
             type : 'get',

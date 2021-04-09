@@ -70,7 +70,7 @@ class DataTableHomeInvoiceListView(View):
                              " + ("and bk_number like '%" + str(bk_number_search) + "%'" if bk_number_search != '' else '') + " \
                              "+ (type_product_search  if len(type_product) > 0  else '' )  + " "
 
-        query_str = "SELECT tb1.id as id_list_invoice, type_bk, bk_number, po_number, receiver_number, vendor_number, is_qa, result_check, name, upload_date, src_img , last_change_date FROM ["+str(cus_search)+"|bk] as tb1 \
+        query_str = "SELECT tb1.id as id_list_invoice, type_bk,isnull(bk_number,'') as bk_number, isnull(po_number,'') as po_number, isnull(receiver_number,'') as receiver_number, vendor_number, is_qa, result_check, name, upload_date, src_img , last_change_date FROM ["+str(cus_search)+"|bk] as tb1 \
                         INNER JOIN service_typeproduct  as tb2 ON tb1.type_bk = tb2.id \
                         WHERE  \
                              upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
@@ -187,7 +187,7 @@ def find_bill_to_print_pom(request):
         date_find_to = date_search[6:10] + '/' + date_search[3:5] + '/' + date_search[0:2] + ' 23:59:59'
         with connection.cursor() as cursor:
             list_invoice = cursor.execute("select bk_number, receiver_number , src_receiver, id, vendor_number from  [" + str(
-                id_cus) + "|bk] where type_bk in ("+str(list_product)+")  and receiver_number <> '' and upload_date > %s  and upload_date < %s ",
+                id_cus) + "|bk] where type_bk in ("+str(list_product)+")  and receiver_number <> '' and isnull(src_receiver,'') <> '' and upload_date > %s  and upload_date < %s ",
                                           [date_find_from, date_find_to]).fetchall()
         if len(list_invoice):
             base_path = settings.MEDIA_ROOT
@@ -215,7 +215,8 @@ def find_bill_to_print_pom(request):
         from PyPDF2 import PdfFileMerger
         merger = PdfFileMerger()
         for pdf in list_exist:
-            merger.append(base_path + pdf.src_receiver)
+            if os.stat(base_path + pdf.src_receiver).st_size>500:
+                merger.append(base_path + pdf.src_receiver)
         merger.write(base_forder + path_save)
         merger.close()
         return JsonResponse({

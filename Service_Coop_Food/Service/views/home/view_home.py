@@ -21,7 +21,8 @@ class HomeView(View):
         status_chosed = request.GET.getlist('selectstatus[]', [StatusBill.objects.first().id])
         date_from = request.GET.get('timeStart', datetime.datetime.now().strftime('%d/%m/%Y'))
         date_to = request.GET.get('timeEnd', datetime.datetime.now().strftime('%d/%m/%Y'))
-        list_status = StatusBill.objects.all().values_list().values_list('id','symbol','name',flat=False)
+        list_status = StatusBill.objects.all().order_by('stt').values_list().values_list('id','symbol','name',flat=False)
+        #print(list_status)
         ## save old url search
         request.session['url_old_search_bill'] = request.get_full_path_info()
         list_status_per_change = PermissionChangeStatus.objects.filter(role_id=request.user.role_id).exclude(
