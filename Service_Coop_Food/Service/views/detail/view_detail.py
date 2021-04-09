@@ -104,6 +104,8 @@ class DetailBillView(View):
         company_address = request.POST.get('input-address-company', '')
         bill_symbol = request.POST.get('input-symbol-bill', '')
         bill_number = request.POST.get('input-bill-number', '')
+        if len(bill_number)<7:
+            bill_number=str(bill_number).zfill(7)
         po_number = request.POST.get('input-po-number', '')
         po_sum = request.POST.get('input-po-money', '').strip().replace(',','')
         vendor = request.POST.get('input-vendor-code', '')
@@ -118,18 +120,19 @@ class DetailBillView(View):
 
         if is_po.lower() == 'true' or str(is_po) == '1':
             result_check_luoi_oke = self.split_result_check_luoi(result_check_luoi, 5)
+            check_trung = ''
         else:
             result_check_luoi_oke = self.split_result_check_luoi(result_check_luoi, 8)
-
+            check_trung = str(tax_number)+'‡'+str(bill_number)+'‡'+str(result_check[18])
         with transaction.atomic():
             ##update thong tin chung của bộ và result check, result_check_luoi cua chinh no
-            sql_update_common = "UPDATE ["+str(id_cus)+"|bill] SET type_product_id  = %s \
+            sql_update_common = "UPDATE ["+str(id_cus)+"|bill] SET status_rpa = CASE WHEN status_id = 4 THEN null ELSE status_rpa END,type_product_id  = %s \
                                                             ,tax_number = %s\
-                                                            ,bill_date = %s\
+                                                            ,bill_date = CASE WHEN id = "+str(bill_id)+ " THEN %s ELSE bill_date END\
                                                             ,city_name = %s\
                                                             ,city_address = %s\
                                                             ,symbol = %s\
-                                                            ,bill_number = %s\
+                                                            ,bill_number  = CASE WHEN id = "+str(bill_id)+ " THEN %s ELSE bill_number END\
                                                             ,po_number = %s\
                                                             ,sum_po = %s\
                                                             ,vendor_number = %s\
@@ -138,6 +141,7 @@ class DetailBillView(View):
                                                             ,result_check = CASE WHEN id = "+str(bill_id)+ " THEN %s ELSE result_check END \
                                                             ,result_check_luoi = CASE WHEN id = "+str(bill_id)+ " THEN %s ELSE result_check_luoi END \
                                                             ,is_qa = %s\
+                                                            ,check_trung  = CASE WHEN id = "+str(bill_id)+ " THEN %s ELSE check_trung END\
                                 WHERE group_hd = '"+str(id)+"'"
             list_updates = [
                 type_product, tax_number, bill_date, company_name, company_address,
@@ -161,6 +165,7 @@ class DetailBillView(View):
                                                         receiver_number, result_check, result_check_luoi  FROM ["+str(id_cus)+"|bill] WHERE iD = "+str(bill_id)+"").fetchone()
             old_values_save_log = '❥'.join(str(x) if x != None else '' for x in sql_old_values_save_log)
             list_updates.append(is_qa)
+            list_updates.append(check_trung)
             with connection.cursor() as cur:
                 cur.execute(sql_update_common, list_updates)
                 cur.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, bill_id) \

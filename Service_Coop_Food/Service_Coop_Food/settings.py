@@ -109,6 +109,17 @@ DATABASES = {
 			'driver' : 'ODBC Driver 17 for SQL Server',
 		}
     },
+    'rpa': {
+        'ENGINE': 'sql_server.pyodbc',
+		'HOST': '210.2.93.45',
+		'USER' : os.environ.get('DB_USER'),
+		'PASSWORD': os.environ.get('DB_PASS'),
+        'NAME': 'COOP_RPA',
+        'PORT': '1433',
+		'OPTIONS': {
+			'driver' : 'ODBC Driver 17 for SQL Server',
+		}
+    },
 }
 
 

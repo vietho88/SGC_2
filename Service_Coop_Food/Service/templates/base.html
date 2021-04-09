@@ -173,7 +173,7 @@
     <script src="{% static 'vendor/datepicker/js/bootstrap-datepicker.min.js' %}"></script>
     <script src="{% static 'vendor/datepicker/locales/bootstrap-datepicker.vi.min.js' %}"></script>
     <script src="{% static 'public/js/base.js' %}"></script>
-    <script type="text/javascript" src="http://benalman.com/code/projects/jquery-throttle-debounce/jquery.ba-throttle-debounce.js"></script>
+    <script src="{% static 'public/js/jquery.ba-throttle-debounce.js' %}"></script>
     <script>
         $(document).ready(function () {
             if ('{{ request.session.required_change_path }}' == 'True'){

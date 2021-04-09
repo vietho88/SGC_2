@@ -24,6 +24,7 @@ from Service.views.report import view_report_ajax, view_report, view_report_warh
 from Service.views.invoice_list import view_invoice_list, view_invoice_list_ajax
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.views.generic import TemplateView
 urlpatterns = [
     re_path(r'^$', login_required(view_home.HomeView.as_view()), name='index'),
     path('login', view_auth.LoginView.as_view() , name ='login'),
@@ -113,17 +114,22 @@ urlpatterns = [
     re_path(r'^api/test$', view_api.HelloView.as_view(),name="api_test"),
     re_path(r'^api/update_info_group_bill$', view_api.HelloView.as_view(),name="api_update_info_group_bill"),
     re_path(r'^api/check_exist_bill$', view_api.api_check_exist_bill,name="api_check_exist_bill"),
+    re_path(r'^api/check_exist_symbol_number$', view_api.api_check_exist_symbol_number,name="api_check_exist_symbol_number"),
     re_path(r'^api/api_update_group_bill$', view_api.api_update_group_bill,name="api_update_group_bill"),
     re_path(r'^api/api_export_excel$', view_api.api_export_excel,name="api_export_excel"),
     re_path(r'^api/api_export_excel_bangke$', view_api.api_export_excel_invoice_list,name="api_export_excel_bangke"),
     re_path(r'^api/upload_hddt_ttpp$', view_api.Upload_HDDT_TTPP, name="upload_hddt_ttpp"),
+    re_path(r'^api/upload_hddt_ncc$', view_api.Upload_HDDT_NCC, name="upload_hddt_ncc"),
     re_path(r'^api/check_invoice_electronic$', view_api.check_Invoice_Electronic, name="check_invoice_electronic"),
     re_path(r'^api/change_status_image$', view_api.update_bill_for_image, name="api_change_status_image"),
     re_path(r'^api/update_status_hddt$', view_api.update_status_hddt, name="api_update_status_hddt"),
     re_path(r'^api/upload_pdf_receiver$', view_api.upload_pdf_receiver, name="api_upload_pdf_receiver"),
     re_path(r'^api/api_check_exist_bill$', view_api.api_check_exist_bill, name="api_check_exist_bill"),
     re_path(r'^api/auto_check_miss_po$', view_api.auto_check_miss_po, name="api_auto_check_miss_po"),
-
+    re_path(r'^api/insert_po$', view_api.insert_po, name="insert_po"),
+    re_path(r'^api/search_po$', view_api.search_po, name="search_po"),
+    re_path(r'^api/update_po$', view_api.update_po, name="update_po"),
+    path('.well-known/pki-validation/7FC3AD1E6612DC44F49BBC3AA599A335.txt', TemplateView.as_view(template_name="7FC3AD1E6612DC44F49BBC3AA599A335.txt", content_type='text/plain')),
 ]
 
 if not settings.DEBUG:
