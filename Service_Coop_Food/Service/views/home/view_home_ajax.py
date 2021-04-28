@@ -246,7 +246,7 @@ class DataTableHomeView(View):
                      }
                     data.append(temp)
                 except Exception as e :
-                    print(e)
+                    print("1")
 
         context = {
             "draw": draw,
@@ -581,7 +581,7 @@ def get_group_bill_exchange_many_status(request):
                 }
                 data.append(temp)
             except Exception as e:
-                print(e)
+                print("2")
     symbol_status = StatusBill.objects.get(id=status_find).symbol
     list_per_change = PermissionChangeStatus.objects.filter(recent_status= symbol_status, role_id = request.user.role_id).values_list('new_status')
     list_per_change_return = list(list_per_change)[0][0].split('|')
@@ -724,12 +724,12 @@ def print_pdf_pom(request):
         if message == 'get_type_product':
             if type == 'pom':
                 with connection.cursor() as cur:
-                    list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from ["+str(cus)+"|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where receiver_number is not null and receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 8 and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
+                    list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from ["+str(cus)+"|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where ISNULL(receiver_number,'') != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 7 and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
             else:
                 with connection.cursor() as cur:
                     id_r = StatusBill.objects.get(symbol = 'M').id
                     list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from [" + str(
-                        cus) + "|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where status_id = "+str(id_r)+"  and po_number like 'I%' and upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 8  and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
+                        cus) + "|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where status_id = "+str(id_r)+"  and po_number like 'I%' and upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 7  and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
             list_return = [ list(x) for x in list_type_product]
 
             return JsonResponse({
@@ -741,7 +741,7 @@ def print_pdf_pom(request):
             if type == 'pom':
                 with connection.cursor() as cur:
                     list_type_product = cur.execute("SELECT distinct ket_thuc_dot_number from [" + str(
-                        cus) + "|bill]   where receiver_number is not null and receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
+                        cus) + "|bill]   where ISNULL(receiver_number,'') != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
                         date_find_to) + "'  and ket_thuc_dot_number <> 100 and type_product_id in ("+list_product+") order by ket_thuc_dot_number  ").fetchall()
             else:
@@ -763,7 +763,7 @@ def print_pdf_pom(request):
             list_product = ','.join(request.GET.getlist('list_product[]', ['1000']))
             list_end_batch = ','.join(request.GET.getlist('list_end_batch[]', ['1000']))
             if type == 'pom':
-                where_clause = "receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
+                where_clause = "ISNULL(receiver_number,'') != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
                         date_find_to) + "'  and ket_thuc_dot_number in ("+list_end_batch+") and type_product_id in (" + list_product + ")   and is_po <> 1 "
             else:
@@ -797,19 +797,19 @@ def print_pdf_pom(request):
                 data = []
                 for group in all_group_bill_limit:
                     try:
-                        src_receiver = group.src_receiver.split('|')[0] 
+                        src_receiver = group.src_receiver.split('|')[0]
                         if os.path.exists(base_path + src_receiver):
                             temp = {
                                 'group': group.group_hd,
                                 'reciever_number': group.receiver_number.split('|')[0] if group.receiver_number else '' ,
-                                'type_product': group.name_type.split('|')[0],
-                                'bill_number': group.bill_number.split('|')[0],
-                                'end_batch': group.end_batch_number.split('|')[0],
+                                'type_product': group.name_type.split('|')[0] if group.name_type else '',
+                                'bill_number': group.bill_number.split('|')[0] if group.bill_number else '',
+                                'end_batch': group.end_batch_number.split('|')[0] if group.end_batch_number else '',
                                 'src_receiver': src_receiver,
                             }
                             data.append(temp)
                     except Exception as e:
-                        print(e)
+                        print("3")
             if len(data):
                 return JsonResponse({
                     'message' : 'success',
