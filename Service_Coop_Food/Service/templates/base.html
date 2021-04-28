@@ -47,21 +47,21 @@
                 {% if 'Xem hóa đơn' in request.session.list_per %}
                     {% block active_header_bill %}
                     <li class="nav-item ">
-                        <a class="nav-link" href="{% url 'home_bill' %}" target="_blank">Hóa Đơn <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'home_bill' %}" target="">Hóa Đơn <span class="sr-only">(current)</span></a>
                     </li>
                     {% endblock %}
                 {% endif %}
                 {% if 'Xem bảng kê' in request.session.list_per %}
                     {% block active_header_invoice_list %}
                     <li class="nav-item ">
-                        <a class="nav-link" href="{% url 'home_invoice_list' %}" target="_blank">Bảng Kê <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'home_invoice_list' %}" target="">Bảng Kê <span class="sr-only">(current)</span></a>
                     </li>
                     {% endblock %}
                 {% endif %}
 {#                {% if 'Xem hóa đơn' in request.session.list_per %}#}
                     {% block active_header_statistical %}
                     <li class="nav-item ">
-                        <a class="nav-link" href="{% url 'statistical' %}" target="_blank">Thống kê <span class="sr-only">(current)</span></a>
+                        <a class="nav-link" href="{% url 'statistical' %}" target="">Thống kê <span class="sr-only">(current)</span></a>
                     </li>
                     {% endblock %}
 {#                {% endif %}#}

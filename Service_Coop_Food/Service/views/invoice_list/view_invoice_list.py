@@ -12,6 +12,7 @@ import pyqrcode
 import os
 from django.shortcuts import get_object_or_404
 from django.core.exceptions import PermissionDenied
+from Service.common import common_function
 # Create your views here.
 
 class InvoiceListView(View):
@@ -26,7 +27,9 @@ class InvoiceListView(View):
         receiver_number_search = request.GET.get ('receiver_number', '')
         vendor_number_search = request.GET.get ('vendor_number', '')
         qa_search = request.GET.get ('select_qa', '')
-
+        list_cus_manager = request.user.manager_cus.all().values('id', 'name' , 'store_number')
+        list_status = StatusBill.objects.all().order_by('stt').values_list().values_list('id','symbol','name',flat=False)
+        list_product = TypeProduct.objects.filter(is_show = True,type__in = [1,2])
         cus_managers = request.user.manager_cus.all().values('id', 'name', 'store_number')
         ###3 là loại bảng kê
         invoice_list_types = TypeProduct.objects.filter(type = 3).values('id', 'name')
@@ -47,6 +50,9 @@ class InvoiceListView(View):
             'invoice_list_types' : invoice_list_types,
             'qa_chosed' : qa_search,
             'invoice_list_type_chosed' : type_product_search ,
+            'list_cus' : list_cus_manager,
+            'list_status' : list_status,
+            'list_product' : list_product,
         }
         return render(request, 'invoice_list/invoice_list_show.html', context = context)
 
@@ -140,3 +146,52 @@ class DetailInvoiceList(View):
                 list_temp1.append(x.strip())
 
         return '‡'.join(list_temp2)
+class PrintInvoiceList(View):
+    @method_decorator(allowed_permission(allowed_per = 'Xuất thống kê'))
+    # @method_decorator(allowed_cus_manager(cus = request.GET.get('select_cus')))
+    def get(self, request):
+        date_export = request.GET.get('date_export', None)
+        cus_chosed = request.GET.get('select_cus', None)
+        status_chosed = request.GET.getlist('select_status', None)
+        type_product_chosed = request.GET.getlist('select_type_product', [])
+        batch_end_chosed = request.GET.getlist('select_batch', [])
+
+        if None in [date_export, cus_chosed] or type_product_chosed == [] :
+            return HttpResponse("Thiếu dữ liệu để chiết xuất thống kê!! Vui lòng chọn rồi thử lại")
+
+        if not common_function.check_has_permission_in_cus(request, cus_chosed):
+            return HttpResponse("Bạn không có quyền quản lí chi nhánh này")
+
+        list_product_name = TypeProduct.objects.filter(pk__in = type_product_chosed).values_list('name', flat=True)
+        str_list_product_name = ','.join(list(list_product_name))
+        str_status_chosed = ','.join(status_chosed)
+        str_type_product_chosed = ','.join(type_product_chosed)
+        str_batch_end_chosed = ','.join(batch_end_chosed)
+        date_from_convert = date_export[6:10] + '/' + date_export[3:5] + '/' + date_export[0:2] + ' 00:00:00'
+        date_to_convert = date_export[6:10] + '/' + date_export[3:5] + '/' + date_export[0:2] + ' 23:59:59'
+
+
+        sql = "SELECT isnull(bk_number,'') as bk_number, isnull(po_number,'') as po_number, isnull(vendor_number,'') as vendor_number, isnull(receiver_number,'') as receiver_number \
+               FROM ["+str(cus_chosed)+"|bk] as tb1 \
+                INNER JOIN Service_typeproduct as tb2 ON tb1.type_bk = tb2.id \
+                WHERE \
+                        upload_date > '"+str(date_from_convert)+"' \
+                        and upload_date < '"+str(date_to_convert)+"' \
+                        and type_bk in ("+str(str_type_product_chosed)+") \
+                         ORDER BY [index]"
+        with connection.cursor() as cursor:
+            bills = cursor.execute(sql).fetchall()
+        # print(bills)
+
+        ###Phải tính các giá trị tiền hàng VAT (split from resultcheck)
+        bills_return = []
+        
+        context = {
+            'cus_name' : ListCus.objects.filter(id = cus_chosed).first().name.upper(),
+            'str_list_product_name' : ', '.join(list_product_name),
+            'str_batch_end' : str_batch_end_chosed,
+            'bills' : bills,
+            'bills_return' : bills_return,
+            'date_export' : date_export
+        }
+        return render(request, 'invoice_list/print_invoice_list_show.html', context)

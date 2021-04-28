@@ -83,9 +83,14 @@ def api_export_excel(request):
     select_nganh_hang = request.GET.getlist('select_nganh_hang')
     list_nganh_hang_search = ','.join(select_nganh_hang)
     #id_cus = request.GET.get('cus_id', None)
-    id_cus = request.user.cus_id
-
-    if None in [date_send, status, select_nganh_hang, id_cus]:
+    #id_cus = request.user.cus_id
+    store = request.GET.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
+    if None in [date_send, status, select_nganh_hang, store]:
         return JsonResponse({
             'message': 'Missing para'
         })
@@ -191,23 +196,29 @@ def api_export_excel_invoice_list(request):
     date = request.GET.get('date', None)
     type_invoice_list = request.GET.get('type_bang_ke', None)
     # cus_id = request.GET.get('cus_id', None)
-    cus_id = request.user.cus_id
-    if None in [date, type_invoice_list, cus_id]:
+    #cus_id = request.user.cus_id
+    store = request.GET.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
+    if None in [date, type_invoice_list, store]:
         return JsonResponse({
             'message' : 'missing para require'
         })
 
 
     list_cus_manager = request.user.manager_cus.all().values_list('id', flat=True)
-    if int(cus_id) not in list_cus_manager:
+    if int(id_cus) not in list_cus_manager:
         return JsonResponse({
             'message' : 'use not permission in cus'
         })
-    name_cus = ListCus.objects.get(pk = cus_id).name
+    name_cus = ListCus.objects.get(pk = id_cus).name
 
     with connection.cursor() as cursor:
         sql_list_invoice = cursor.execute(
-            "SELECT tb2.name, tb1.image_name, tb1.is_qa, tb1.vendor_number, tb1.bk_number,  tb1.result_check FROM [dbo].[" + str(cus_id) + "|bk] as tb1 inner join service_typeproduct as tb2 on tb1.type_bk = tb2.id where CONVERT(varchar,tb1.upload_date,103) = '" + date + "'   and tb1.type_bk = " + str(type_invoice_list) + "  ").fetchall()
+            "SELECT tb2.name, tb1.image_name, tb1.is_qa, tb1.vendor_number, tb1.bk_number,  tb1.result_check FROM [dbo].[" + str(id_cus) + "|bk] as tb1 inner join service_typeproduct as tb2 on tb1.type_bk = tb2.id where CONVERT(varchar,tb1.upload_date,103) = '" + date + "'   and tb1.type_bk = " + str(type_invoice_list) + "  ").fetchall()
     if len(sql_list_invoice) == 0:
         return JsonResponse({
             'message': 'error : Not data to export'
@@ -398,11 +409,16 @@ def update_bill_for_image(request):
     status = request.POST.get('status_bill', '')
     vendor_number = request.POST.get('vendor', '')
     status_rpa = request.POST.get('status_rpa', '')
-    id_cus = request.user.cus_id
+    #id_cus = request.user.cus_id
     # id_cus = request.POST.get('id_cus', '')
     user_id = request.user.id
-
-    if '' in [image_name, id_cus]:
+    store = request.POST.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
+    if '' in [image_name, store]:
         return JsonResponse({'message' : 'missing para require'})
 
     if status != '':
@@ -421,15 +437,15 @@ def update_bill_for_image(request):
     # with transaction.atomic():
     with connection.cursor() as cursor:
         try:
-            find_old_status = cursor.execute("SELECT status_id,vendor_number, status_rpa, id  from ["+str(id_cus)+"|bill] WHERE \
-                                              image_name = %s and is_po <> 1 ",[ str(image_name)]).fetchone()
+            # find_old_status = cursor.execute("SELECT status_id,vendor_number, status_rpa, id  from ["+str(id_cus)+"|bill] WHERE \
+            #                                   image_name = %s and is_po <> 1 ",[ str(image_name)]).fetchone()
             cursor.execute(query_update, [user_id, image_name])
-            old_values_save_log = '❥'.join(str(x) if x != None else '' for x in find_old_status)
-            new_values_save_log = '❥'.join([str(status), vendor_number, status_rpa])
-            ###lưu log##type = 9 là robot update theo ten anh###
-            cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, bill_id) \
-                                             VALUES (%s, %s, %s, getdate(), %s, %s, %s)",
-                        [id_cus, user_id, 9, old_values_save_log, new_values_save_log, find_old_status.id])  ###update log
+            # old_values_save_log = '❥'.join(str(x) if x != None else '' for x in find_old_status)
+            # new_values_save_log = '❥'.join([str(status), vendor_number, status_rpa])
+            # ###lưu log##type = 9 là robot update theo ten anh###
+            # cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, bill_id) \
+            #                                  VALUES (%s, %s, %s, getdate(), %s, %s, %s)",
+            #             [id_cus, user_id, 9, old_values_save_log, new_values_save_log, find_old_status.id])  ###update log
             cursor.commit()
         except Exception as e:
             print(e)
@@ -445,10 +461,13 @@ def update_bill_for_image(request):
 @permission_classes([IsAuthenticated])
 def update_status_hddt(request):
     image_name = request.POST.get('ImageName', None)
-    id_cus = request.user.cus_id
-    # id_cus = request.POST.get('id_cus', None)
-
-    if None in [image_name, id_cus]:
+    store = request.POST.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
+    if None in [image_name, store]:
         return JsonResponse({'message': 'missing param required'}, status=200)
 
     with connection.cursor() as cur:
@@ -461,10 +480,13 @@ def update_status_hddt(request):
 def upload_pdf_receiver(request):
     myfile = request.FILES.get('file_up', '')
     folder = request.POST.get('folder', '')
-    user = request.POST.get('user_web', '')
+    #user = request.POST.get('user_web', '')
+    store = request.POST.get('store', None)    
     with connection.cursor() as cursor:
-        id_cus = cursor.execute("Select cus_id from dbo.[Service_usercoop] where  username=  %s",[user]).fetchone()[0]
-    #id_cus = request.user.cus_id
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
     group_hd = request.POST.get('group_hd')
     if  '' in [myfile, folder] or myfile.name.endswith('.pdf') == False :
         return JsonResponse({'message': 'error : No file send or file send not is pdf, check parameter'})
@@ -494,9 +516,15 @@ def upload_pdf_receiver(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_check_exist_bill(request):
-    id_cus = request.user.cus_id
+    #id_cus = request.user.cus_id
     tax_number = request.GET.get('tax_number', '')
     bill_number = request.GET.get('bill_number', '')
+    store = request.GET.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
     if  tax_number == '' or bill_number == '':
         return JsonResponse({
             'message': 'Lỗi, Param gửi lên còn thiếu'
@@ -524,9 +552,15 @@ def api_check_exist_bill(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def api_check_exist_symbol_number(request):
-    id_cus = request.user.cus_id
+    #id_cus = request.user.cus_id
     symboy_number = request.GET.get('symbol_number', '')
     bill_number = request.GET.get('bill_number', '')
+    store = request.GET.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
     if  symboy_number == '' or bill_number == '':
         return JsonResponse({
             'message': 'Lỗi, Param gửi lên còn thiếu'
@@ -565,11 +599,16 @@ def api_update_group_bill(request):
     status = request.POST.get('status', '')
     status_rpa = request.POST.get('status_rpa', '')
     upload_date = request.POST.get('upload_date', '')  ##format 12/12/2020
-    id_cus = request.user.cus_id
-    #id_cus = request.POST.get('id_cus', None)
+    #id_cus = request.user.cus_id
+    store = request.POST.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
     user_id = request.user.id
 
-    if None in [group_hd, id_cus]:
+    if None in [group_hd, store]:
         return JsonResponse({
             'message': 'Fail, group and id_cus is not None'
         }, safe=False)
@@ -594,15 +633,15 @@ def api_update_group_bill(request):
     # with transaction.atomic():
     with connection.cursor() as cursor:
         try:
-            find_old_status = cursor.execute(
-                "SELECT status_id,po_number,receiver_number,vendor_number, status_rpa  from ["+str(id_cus)+"|bill] WHERE group_hd = %s and is_po <> 1 ", [group_hd]).fetchone()
+            # find_old_status = cursor.execute(
+            #     "SELECT status_id,po_number,receiver_number,vendor_number, status_rpa  from ["+str(id_cus)+"|bill] WHERE group_hd = %s and is_po <> 1 ", [group_hd]).fetchone()
             cursor.execute(query_update, [user_id])
-            old_values_save_log = '❥'.join(str(x) if x != None else '' for x in find_old_status)
-            new_values_save_log = '❥'.join([str(status), po_number, receiver_number, vendor_number, status_rpa ])
-            ###lưu log##type = 8 là robot update ###
-            cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, group_hd) \
-                                         VALUES (%s, %s, %s, getdate(), %s, %s, %s)",
-                        [id_cus, user_id, 8, old_values_save_log, new_values_save_log,group_hd])  ###update log
+            # old_values_save_log = '❥'.join(str(x) if x != None else '' for x in find_old_status)
+            # new_values_save_log = '❥'.join([str(status), po_number, receiver_number, vendor_number, status_rpa ])
+            # ###lưu log##type = 8 là robot update ###
+            # cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, group_hd) \
+            #                              VALUES (%s, %s, %s, getdate(), %s, %s, %s)",
+            #             [id_cus, user_id, 8, old_values_save_log, new_values_save_log,group_hd])  ###update log
             cursor.commit()
         except Exception as e:
             print(e)
@@ -617,17 +656,23 @@ def api_update_group_bill(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def auto_check_miss_po(request):
-    idcus =request.user.cus_id        
+    #idcus =request.user.cus_id        
     strdateSearch = request.GET.get('dateSearch')
     try:
         dateSearch = datetime.datetime.strptime(strdateSearch, '%d/%m/%Y')
     except:
         return JsonResponse({"message": "dateSearch:dd/mm/yyyy"}, status=400)
+    store = request.GET.get('store', None)    
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
     data = {'reciver':[] }
     foldernow = settings.MEDIA_ROOT + "pdf_receiver/"
     with connection.cursor() as cursor:
         result = cursor.execute(
-            "Select group_hd,po_number,Receiver_number from dbo.[" +str(idcus)+"|bill ] where  convert(varchar, Upload_date, 103)='"+strdateSearch+"' and ISNULL(Receiver_number,'') !='' ").fetchall()
+            "Select group_hd,po_number,Receiver_number from dbo.[" +str(id_cus)+"|bill ] where  convert(varchar, Upload_date, 103)='"+strdateSearch+"' and ISNULL(Receiver_number,'') !='' ").fetchall()
     for item in result:
         hdprop = item[0]
         dayup = hdprop[2:8]
@@ -642,7 +687,7 @@ def auto_check_miss_po(request):
     
     with connection.cursor() as cursor:
         result = cursor.execute(
-            "select Image_Name,po_number from dbo.[" +str(idcus)+"|bk] where Receiver_number is not null and convert(varchar, Upload_date, 103)='"+strdateSearch+"'  and Receiver_number !=''").fetchall()
+            "select Image_Name,po_number from dbo.[" +str(id_cus)+"|bk] where Receiver_number is not null and convert(varchar, Upload_date, 103)='"+strdateSearch+"'  and Receiver_number !=''").fetchall()
     for item in result:
         imagename = item[0]
         dayup = imagename[2:8]
@@ -654,12 +699,8 @@ def auto_check_miss_po(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def insert_po(request):
-    idcus =request.user.cus_id   
-    with connection.cursor() as cursor:
-        try:  
-            store = cursor.execute("SELECT store_number  from [Service_listcus] WHERE Id =%s ", [idcus]).fetchone()[0]
-        except:
-             return JsonResponse({"message": "store is Error"}, status=400)
+    #idcus =request.user.cus_id   
+    store =request.GET.get('store')     
     mapo=request.GET.get('mapo') 
     strdateSearch = request.GET.get('date_up')
     try:
@@ -677,12 +718,7 @@ def insert_po(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def search_po(request):
-    idcus =request.user.cus_id   
-    with connection.cursor() as cursor:
-        try:  
-            store = cursor.execute("SELECT store_number  from [Service_listcus] WHERE Id =%s ", [idcus]).fetchone()[0]
-        except:
-             return JsonResponse({"message": "store is Error"}, status=400)
+    store =request.GET.get('store')  
     date_start=request.GET.get('date_start')
     date_stop = request.GET.get('date_stop')
     try:
@@ -703,15 +739,21 @@ def search_po(request):
 @api_view(['GET'])
 @permission_classes([IsAuthenticated])
 def update_po(request):
-	idcus =request.user.cus_id 
-	get_img = request.GET.get('image_name')
-	get_SoPO = request.GET.get('So_PO')
-	get_SoBK = request.GET.get('So_BK')
-	get_SoReceiver = request.GET.get('So_Receiver')
-	strtable = str(idcus)+'|bk'	
-	with connection.cursor() as cursor:
-		try:
-			cursor.execute("Update dbo.["+strtable+"] set last_change_date = getdate(), po_number = %s, bk_number = %s, receiver_number = %s  where image_name = %s", [get_SoPO, get_SoBK, get_SoReceiver, get_img]).commit()
-		except  :
-			return JsonResponse({"message":"Error"}, status=200)
-	return JsonResponse({"message":"Ok"}, status=200)
+    #idcus =request.user.cus_id 
+    get_img = request.GET.get('image_name')
+    get_SoPO = request.GET.get('So_PO')
+    get_SoBK = request.GET.get('So_BK')
+    get_SoReceiver = request.GET.get('So_Receiver')
+    store = request.GET.get('store', None)
+    with connection.cursor() as cursor:
+        try:  
+            id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+        except:
+            return JsonResponse({"message": "store is Error"}, status=400)
+    strtable = str(id_cus)+'|bk'    
+    with connection.cursor() as cursor:
+        try:
+            cursor.execute("Update dbo.["+strtable+"] set last_change_date = getdate(), po_number = %s, bk_number = %s, receiver_number = %s  where image_name = %s", [get_SoPO, get_SoBK, get_SoReceiver, get_img]).commit()
+        except  :
+            return JsonResponse({"message":"Error"}, status=200)
+    return JsonResponse({"message":"Ok"}, status=200)

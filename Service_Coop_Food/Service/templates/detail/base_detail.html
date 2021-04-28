@@ -326,15 +326,16 @@
                                 <button type="button" class="btn btn-danger d-none btn-reset-group-bill ml-3"><i class="fas fa-undo"></i> Hủy thay đổi</button>
                                 {% endif %}
                             </div>
-                             <!-- phần biên bản -->
-                            {% if status_bill == 'S' and bill.status_other == '' and  'Tạo biên bản' in request.session.list_per and id_cus in request.session.list_cus_manager  %}
-                                    <a href="{% url 'report_bill' id_cus id 0 %}" class="btn btn-danger m-1" target="_blank">Tạo biên
-                                        bản <i class="fas fa-angle-right  "></i></a>
-                            {% elif  status_bill == 'S' and bill.status_other != '' and  'Xem biên bản' in request.session.list_per and id_cus in request.session.list_cus_manager  %}
-                                    <a href="{% url 'report_bill' id_cus id 0 %}" target="_blank" class="btn btn-danger">Xem biên
-                                        bản <i class="fas fa-angle-right  "></i></a>
-                            {% endif %}
+                             
                             <div class="menu-button">
+                                <!-- phần biên bản -->
+                                {% if status_bill == 'S' and bill.status_other == '' and  'Tạo biên bản' in request.session.list_per and id_cus in request.session.list_cus_manager  %}
+                                <a href="{% url 'report_bill' id_cus id 0 %}" class="btn btn-danger ml-2" style="margin-right:  0.5rem!important;" target="_blank">Tạo biên
+                                    bản <i class="fas fa-angle-right  "></i></a>
+                                {% elif  status_bill == 'S' and bill.status_other != '' and  'Xem biên bản' in request.session.list_per and id_cus in request.session.list_cus_manager  %}
+                                        <a href="{% url 'report_bill' id_cus id 0 %}" target="_blank" class="btn btn-danger ml-2" style="margin-right:  0.5rem!important;">Xem biên
+                                            bản <i class="fas fa-angle-right  "></i></a>
+                                {% endif %}
                                  {% if 'Xem PDF hóa đơn điện tử' in request.session.list_per and id_cus in request.session.list_cus_manager  %}
                                 <button class="btn btn-info btn-dowload-file" type="button" title="Xem file PDF Hóa đơm" data-toggle="tooltip"  data-message="watchpdf" data-group="{{ bill.group_hd }}" data-check="{{ bill.src_pdf }}">
                                     <i class="far fa-file-pdf"></i></button>
@@ -1179,32 +1180,31 @@
                 $('.show_status_rpa').html(`TRẠNG THÁI ROBOT: ${status_rpa}`);
                 $('#modal_show_rpa').modal('show');
             })
-        })
-
-        $(".btn_submit_up_po").on('click', function () {
-            if($('.input_file_upload_po').val() == ''){
-                alertSwalTopRight('info', 'Bạn chưa chọn file tải lên !!')
-            }
-            else{
-                var form_up_po = new FormData(document.getElementById('form_upload_po'))
-                $.ajax({
-                    url : '{% url 'ajax_upload_pdf_po' %}',
-                    type : 'post',
-                    data : form_up_po,
-                    contentType: false,
-                    processData: false,
-                    success : function (data) {
-                        if(data.message == 'success'){
-                            alertSwalTopRight('success', 'Tải lên thành công !!')
-                            window.location.reload()
+            $(".btn_submit_up_po").on('click', function () {
+                if($('.input_file_upload_po').val() == ''){
+                    alertSwalTopRight('info', 'Bạn chưa chọn file tải lên !!')
+                }
+                else{
+                    var form_up_po = new FormData(document.getElementById('form_upload_po'))
+                    $.ajax({
+                        url : '{% url 'ajax_upload_pdf_po' %}',
+                        type : 'post',
+                        data : form_up_po,
+                        contentType: false,
+                        processData: false,
+                        success : function (data) {
+                            if(data.message == 'success'){
+                                alertSwalTopRight('success', 'Tải lên thành công !!')
+                                window.location.reload()
+                            }
+                            else{
+                                alertSwalTopRight('info', data.message )
+                            }
                         }
-                        else{
-                            alertSwalTopRight('info', data.message )
-                        }
-                    }
-                })
-            }
-        })
+                    })
+                }
+            })
+        })        
     </script>
 
 {% endblock %}

@@ -117,6 +117,15 @@
             </div>
             {{ list_per }}
             <div class="ml-auto pr-4">
+                {% if 'Xuất báo cáo excel' in request.session.list_per %}
+                <button class="btn btn-info btn-export-report-excel1 " data-message="get_type_product" title="Xuất dữ liệu ra file Excel"><i class="fas fa-file-excel" data-keyboard="false" data-backdrop="static"></i> Xuất báo cáo </button>
+                {% endif %}
+
+                <!-- -------------------- XUẤT THỐNG KÊ ----------------------- -->
+                {% if 'Xuất thống kê' in request.session.list_per %}
+                <button class="btn btn-info btn-export-bang-ke " data-message="get_data"><i class="fas fa-chart-line" data-keyboard="false" data-backdrop="static"></i> Xuất Thống kê </button>
+                {% endif %}
+                
                 {% if 'IN pom/inv' in request.session.list_per %}
                     <button class="btn btn-info mh-10 " type="button" data-toggle="modal" data-target="#modal_print_pom" data-keyboard="false" data-backdrop="static">
                         <i class="fas fa-print"></i> In POM
@@ -145,8 +154,8 @@
                     </thead>
                     <tbody class="text-center ">
                              <tr class="pt-auto">
-                                <td class="pt-3" >{{ forloop.counter }}</td>
-                                <td class="pt-3" >{{ invoice.type_bk }}</td>
+                                <td class="pt-3">{{ forloop.counter }}</td>
+                                <td class="pt-3">{{ invoice.type_bk }}</td>
                                 <td class="pt-3">{{ invoice.bk_number }}</td>
                                 <td class="pt-3">{{ invoice.po_number }}</td>
                                 <td class="pt-3">{{ invoice.receiver_number }}</td>
@@ -156,7 +165,7 @@
                                 <td class="pt-3">{{ invoice.is_qa }}</td>
                                 <td class="pt-3">{{ invoice.is_qa }}</td>
                                 <td class="pt-3">{{ invoice.is_qa }}</td>
-{#                                <td style="width: 100px; height: 100px"><a href="{% url 'invoice_list_detail' 1 %}" target="_blank"><img class="card-img-top" src="https://sgc.qlhd.vn/static/img/200926/20200926_082700_113_1773_14_113_1_01_false_0001.jpg" alt="Card image cap"></a></td>#}
+{#                              <td style="width: 100px; height: 100px"><a href="{% url 'invoice_list_detail' 1 %}" target="_blank"><img class="card-img-top" src="https://sgc.qlhd.vn/static/img/200926/20200926_082700_113_1773_14_113_1_01_false_0001.jpg" alt="Card image cap"></a></td>#}
                             </tr>
                     </tbody>
                 </table>
@@ -247,9 +256,120 @@
         </div>
     </div>
     {% endif %}
+
+    <!-- ----------------- XUẤT THỐNG KÊ ------------------- -->
+    <div class="modal fade" id="modal_export_thong_ke" tabindex="-1" role="dialog" aria-labelledby="modelTitleId" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Xuất thống kê</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form method="get" action="{% url 'print_invoicelist' %}" id="form_export_statistical">
+                    <div class="form-group ">
+                        <label for="input_date_from">Chọn  ngày</label>
+                        <input type="" class="form-control datepicker" id="input_date_export_thong_ke" aria-describedby="emailHelp" placeholder="" name="date_export" value="{{date_from}}">
+                    </div>
+                    <div class="form-group">
+                        <label for="">Chọn đơn vị</label><br>
+                        <select class="form-group selectpicker w-100"  id="select_cus_thong_ke"  name="select_cus">
+                            {% for cus in list_cus %}
+                                <option value="{{ cus.id }}">{{ cus.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <!-- <select class="form-group selectpicker" id="select_type_product" multiple data-actions-box="true" name="select_type" data-width="100%" data-selected-text-format="count > 1" data-count-selected-text= "Đã chọn {0} loại">
+                        {% for type in invoice_list_types %}
+                            {% if type.id|stringformat:"i" in invoice_list_type_chosed %}
+                                <option value="{{ type.id }}" selected>{{ type.name }}</option>
+                            {% else %}
+                                <option value="{{ type.id }}">{{ type.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                    </select> -->
+                    <div class="form-group">
+                        <label for="">Chọn nghành hàng</label>
+                        <select class="form-control selectpicker" multiple name="select_type_product" id="select_type_product_thong_ke" data-actions-box="true" >
+                            {% for type in invoice_list_types %}
+                            {% if type.id|stringformat:"i" in invoice_list_type_chosed %}
+                                <option value="{{ type.id }}" selected>{{ type.name }}</option>
+                            {% else %}
+                                <option value="{{ type.id }}">{{ type.name }}</option>
+                            {% endif %}
+                        {% endfor %}
+                        </select>
+                    </div>
+                    <!-- <div class="form-group">
+                        <label for="">Chọn Trạng thái</label><br>
+                        <select class="form-group selectpicker w-100" id="select_status_thong_ke" name="select_status" multiple data-actions-box="true" data-selected-text-format="count > 2" data-count-selected-text= "Đã chọn {0} trạng thái">
+                            {% for status in list_status %}
+                                {% if status.1 == 'W' or status.1 == 'S' %}
+                                    <option value="{{ status.0 }}" selected>{{ status.1 }} - {{ status.2 }}</option>
+                                {% else %}
+                                    <option value="{{ status.0 }}" >{{ status.1 }} - {{ status.2 }}</option>
+                                {% endif %}
+                            {% endfor %}
+                        </select>
+                    </div> -->
+                    <div class="d-flex justify-content-end">
+                        <!-- <button type="button" class="btn btn-outline-info btn-search-bill-bang-ke"><i class="fas fa-search  "></i> Tìm ngành hàng </button> -->
+                    </div>
+                    <div class="ml-auto d-flex justify-content-end">
+                        <button type="submit" class="btn btn-outline-info ml-auto btn-export-thong-ke-submit" formtarget="_blank" data-message="" form="form_export_statistical">Xuất thống kê <i class="fas fa-download "></i></button>
+                    </div>
+
+                    <!-- <div class="form-group">
+                        <div class="show_export_statistical" >
+                            <label for="">Chọn nghành hàng</label>
+                            
+                            <select class="form-control select-type-product" name="" >
+                                <option value="">Chọn ngành hàng</option>
+                                {% for type_product in list_product  %}
+                                    <option value="{{ type_product.id }}">{{ type_product.name }}</option>
+                                {% endfor %}
+
+                            </select>
+                        </div>
+                    </div> -->
+
+                    <div class=" alert-success alert-no-bill-thong-ke mb-2" ></div>
+{#                        <div class="alert alert-danger alert-have-bill-thong-ke " ></div>#}
+
+                    <!-- <div class="d-flex justify-content-end">
+                        <button type="button" class="btn btn-outline-info btn-search-bill-bang-ke"><i class="fas fa-search  "></i> Kiểm tra</button>
+                        <div class="ml-auto d-flex justify-content-end">
+                            <button type="submit" class="btn btn-outline-info ml-auto btn-export-bang-ke-submit" formtarget="_blank" data-message="" form="form_export_statistical">Xuất thống kê <i class="fas fa-download "></i></button>
+                        </div>
+                    </div> -->
+
+                    <hr>
+                    <div class="show_export_statistical" style="display: none">
+                        <!-- <div class="form-group">
+                            <label for="">Chọn nghành hàng</label>
+                            <select class="form-control selectpicker" multiple name="select_type_product" id="select_type_product_thong_ke" data-actions-box="true" >
+                            </select>
+                        </div> -->
+                        <!-- <div class="form-group">
+                            <label for="">Chọn đợt</label>
+                            <select class="form-control selectpicker" multiple name="select_batch" id="select_dot_thongke" data-actions-box="true">
+                            </select>
+                        </div> -->
+                        <!-- <div class="ml-auto d-flex justify-content-end">
+                            <button type="submit" class="btn btn-outline-info ml-auto btn-export-thong-ke-submit" formtarget="_blank" data-message="" form="form_export_statistical">Xuất thống kê <i class="fas fa-download "></i></button>
+                        </div> -->
+                    </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
 {% endblock %}
 
 {% block add_js %}
+    <script  src="{% static 'public/js/home.js' %}"></script>
     <script>
         $(document).ready(function () {
             var SETTING_DATATABLE_LAN = {
@@ -621,7 +741,69 @@
 
 
         })
+        $(".btn-export-report-excel1").on('click', function () {
+            message = $(this).data('message')
+            if(message == 'export_excel' &&  $('#select_type_product').val().length == 0){
+                alert('Bạn chưa chon ngành hàng !!')
+                return false
+            }
+            check_expand = $('.btn-search-advance').hasClass('collapsed')
+            if (check_expand){
+                check_expand = 'false'
+            }
+            else {
+                check_expand = 'true'
+            }
+            $.ajax({
+                url : '/ajax/home/invoice-list/export_excel_report_invoice',
+                type : 'get',
+                data : {
+                    select_type_product : $('#select_type_product').val(),
+                    select_cus :$('#select_cus').val(),
+                    date_from : $('#input_date_from').val(),
+                    date_to : $('#input_date_to').val(),
+                    check_seach_advance : check_expand,
+                    message : message
+                },
+                success : function (data) {
+                    if(message == 'get_type_product'){
+                        if(data.message == 'success'){
+                            window.location.href = data.current_full_url + '&dowload=oke'
+                        }else{
+                            Swal.fire({
+                                position: 'top-end',
+                                icon: 'info',
+                                title: 'Không có hóa đơn để tải xuống!',
+                                showConfirmButton: false,
+                                timer: 1500,
+                                customClass: 'custom-sweetalert-right'
+                            })
+                        }
+                    }
+                    else{
+                        path_dowload = data.path_dowload
+                    }
 
+                },
+                error : function (data) {
+                    // swal.alert({
+                    //     title : 'Đã xảy ra lỗi , vui lòng thử lại sau'
+                    // })
+                }
+            })
+        })
+        $('.btn-export-bang-ke').on('click', function () {
+
+            $('#modal_export_thong_ke').modal('show')
+            $('.alert-no-bill-thong-ke').html('')
+            $('.show_export_statistical').css('display','none')
+        })
 
     </script>
+    <script>
+       
+
+    </script>
+    <script  src="{% static 'public/js/home.js' %}"></script>
 {% endblock  %}
+

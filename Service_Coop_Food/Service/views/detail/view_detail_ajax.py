@@ -179,9 +179,10 @@ def upload_pdf_po(request):
                                   , "+ str(user_id) +"\
                                   ,  [user_id_change]\
                                   ,[upload_date]\
+                                  ,[date_change_kho]\
                                   ,[kt_comment]\
                                   ,[ttpp_comment]\
-                                  , '0‡‡‡‡5‡‡‡‡10‡‡‡‡‡‡‡‡‡‡‡'\
+                                  , '0‡‡‡‡5‡‡‡‡10‡‡‡‡‡‡‡‡‡‡'\
                                   , '††††' \
                                   ,[check_trung]\
                                   ,[is_qa]\
@@ -255,7 +256,7 @@ def get_info_detail_bill(request):
                     'symbol': bills[0].symbol,
                     'number_bill': bills[0].bill_number,
                     'po_number': bill.po_number,
-                    'sum_po': bill.sum_po.replace(',',''),
+                    'sum_po': bill.sum_po.replace(',','') if bill.sum_po else '',
                     'vendor_number': bills[0].vendor_number,
                     'receiver_number': bills[0].receiver_number,
                     'upload_date': bill.upload_date,
@@ -287,7 +288,7 @@ def get_info_detail_bill(request):
                     'symbol': bill.symbol,
                     'number_bill': bill.bill_number,
                     'po_number': bill.po_number,
-                    'sum_po': bill.sum_po.replace(',',''),
+                    'sum_po': bill.sum_po.replace(',','') if bill.sum_po else '' ,
                     'vendor_number': bill.vendor_number,
                     'receiver_number': bill.receiver_number,
                     'upload_date': bill.upload_date,

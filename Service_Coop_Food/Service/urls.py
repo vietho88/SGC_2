@@ -91,6 +91,8 @@ urlpatterns = [
     re_path(r'^ajax/detail_bill/get_info_detail_bill$', login_required(view_detail_ajax.get_info_detail_bill), name="ajax_get_info_detail_bill"),
     re_path(r'^ajax/report/update_other_status$', login_required(view_report_ajax.update_other_status), name="ajax_update_report"),
     re_path(r'^ajax/invoice_list/find_bill_to_print_pom$', login_required(view_invoice_list_ajax.find_bill_to_print_pom), name="ajax_find_bill_to_print_pom"),
+    re_path(r'^ajax/home/invoice-list/export_excel_report_invoice$', login_required(view_invoice_list_ajax.export_excel_report_invoice), name="ajax_invoice_export_excel_report_home"),
+    re_path(r'^home/print_invoicelist$', login_required(view_invoice_list.PrintInvoiceList.as_view()) , name ='print_invoicelist'),
     ### url upload file pdf po
     re_path(r'^ajax/detail_bill/upload_pdf_po$', login_required(view_detail_ajax.upload_pdf_po), name="ajax_upload_pdf_po"),
     ### url get log (change status or edit detail bill)

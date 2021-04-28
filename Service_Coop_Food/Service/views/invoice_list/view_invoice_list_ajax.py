@@ -12,6 +12,10 @@ import pyqrcode
 import os
 from django.shortcuts import get_object_or_404
 import re
+from django.contrib.auth.decorators import login_required
+from Service.common import common_function
+import pandas as pd
+from io import BytesIO
 # Create your views here.
 
 class DataTableHomeInvoiceListView(View):
@@ -223,3 +227,118 @@ def find_bill_to_print_pom(request):
             'message' : 'oke',
              'data' :  str(request.user.cus_id) + path_save
         })
+@login_required()
+@allowed_permission(allowed_per = 'Xuất báo cáo excel')
+def export_excel_report_invoice(request):
+    if request.method == 'GET':
+        message = request.GET.get('message')
+        cus_search = request.GET.get('select_cus', '')
+        status_search = request.GET.getlist('select_type_product[]')
+        date_from = request.GET.get('date_from')
+        date_to = request.GET.get('date_to')
+        date_from_convert = date_from[6:10] + '/' + date_from[3:5] + '/' + date_from[0:2] + ' 00:00:00'
+        date_to_convert = date_to[6:10] + '/' + date_to[3:5] + '/' + date_to[0:2] + ' 23:59:59'
+        check_search_advance = request.GET.get('check_seach_advance')
+        ####If check_dowload exist ==>dow file
+        check_dowload = request.GET.get('dowload', '')
+
+        # if not common_function.check_has_permission_in_cus(request, cus_search):
+        #     return HttpResponse("Bạn không có quyền quản lí chi nhánh này")
+
+        data_export = []
+        if  str(cus_search) == '' :
+            cus_search = str(request.user.cus.id)
+        if str(status_search) != '[]' :
+            str_status_search = ','.join(status_search)
+        else:
+            str_status_search = cus_search
+        # str_status_search ='14,15'
+        # if check_search_advance == 'true' :
+        # bill_number_seach  = request.GET.get('bill_number_search','')
+        # report_number_search  = request.GET.get('report_number_search','')
+        # tax_number_search  = request.GET.get('tax_number_search','')
+        # vendor_number_search  = request.GET.get('vendor_number_search','')
+        # receiver_number_search  = request.GET.get('receiver_number_search','')
+        # po_number_search  = request.GET.get('po_number','')
+        # qa_search  = request.GET.get('type_qa','')
+        # type_report_search  = request.GET.get('type_report','')
+        # type_product_search = request.GET.get('type_product', '')
+
+        # ###Serach expend if have ####
+        # search_for_type_product = "and type_product_id = '" + str(type_product_search) + "'"
+        # search_for_bill_number = "and bill_number like '%" + str(bill_number_seach) + "%'"
+        # search_for_tax_number = "and tax_number like '%" + str(tax_number_search) + "%'"
+        # search_for_vendor_number = "and vendor_number like '%" + str(vendor_number_search) + "%'"
+        # search_for_receiver_number = "and receiver_number like '%" + str(receiver_number_search) + "%'"
+        # search_for_po_number = "and po_number like '%" + str(po_number_search) + "%'"
+        # search_for_report_number = "and po_number like '%" + str(report_number_search) + "%'"
+        # search_for_qa = "and is_qa = '" + str(qa_search) + "'"
+        # search_for_type_report = "and status_other = '" + str(type_report_search) + "'"
+        query = "SELECT\
+                tb1.bk_number as bk_number , convert(varchar, tb1.upload_date, 103) as upload_date, \
+                tb1.result_check as result_check, tb1.vendor_number as vendor_number, \
+                tb1.po_number as po_number, tb3.name as type_product,\
+                tb1.receiver_number \
+                FROM \
+                    [dbo].[" + str(cus_search) + "|bk] as tb1 \
+                INNER JOIN \
+                    [dbo].[service_typeproduct] as tb3 \
+                ON \
+                    tb1.type_bk = tb3.id \
+                WHERE \
+                    tb1.listcus_id = " + str(cus_search) + " and tb1.type_bk in (" + str(str_status_search) + ")  \
+                    and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                    \
+                "
+                    
+                    # "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                    # "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                    # "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                    # "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                    # "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                    # " + (search_for_po_number if po_number_search != '' else '') + "  \
+                    # " + (search_for_qa if qa_search != '' else '') + "  \
+                    # " + (search_for_type_report if type_report_search != '' else '') + "  \
+        current_full_url = request.build_absolute_uri()
+        with connection.cursor() as cursor:
+            bills = cursor.execute(query).fetchall()
+
+        message_return = 'nodata' if bills == [] else 'success'
+        
+        name_cus = ListCus.objects.filter(id = cus_search).first().name
+        if check_dowload != '' :
+            for index, bill in enumerate(bills, start=1):
+                result_split = bill.result_check.split('‡') 
+                lsa1='+'.join(list(map(lambda x: x.split('†')[0], result_split)))
+                lsa2='+'.join(list(map(lambda x: x.split('†')[1], result_split)))
+                lsa3='+'.join(list(map(lambda x: x.split('†')[2], result_split)))                
+                dict_bill = [
+                    index,
+                    name_cus,
+                    bill.upload_date,
+                    bill.bk_number,
+                    bill.po_number,
+                    bill.vendor_number,
+                    lsa1,
+                    lsa2,
+                    lsa3,
+                    bill.type_product,
+                    bill.receiver_number if bill.receiver_number not in ['nan', 'none'] else ''
+                ]
+                data_export.append(dict_bill)
+
+            column = ['STT', 'Tên đơn vị', 'Ngày nhận hóa đơn',  'Số bảng kê',
+                      ' Số PO' ,'Mã vendor' ,'Mã SKU','Số lượng','Đơn giá', 'Loại bảng kê', 'Mã receiver' ]
+            # column = ['STT', 'Tên đơn vị', 'Ngày nhận hóa đơn', 'Số bàng kê', 'Số PO',
+            #           'Mã vendor' , 'Mã SKU', 'Số lượng','Đơn giá', 'Loại bàng kê', 'Mã receiver' ]
+            df = pd.DataFrame(data=data_export, columns=column)
+            with BytesIO() as b:
+                writer = pd.ExcelWriter(b, engine='xlsxwriter')
+                df.to_excel(writer, sheet_name='Sheet1', index=False)
+                writer.save()
+                return HttpResponse(b.getvalue(), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        else:
+            return JsonResponse({
+                'message': message_return,
+                'current_full_url': current_full_url.replace('http://127.0.0.1:5085/', 'https://sgc02.qlhd.vn/')
+            })
