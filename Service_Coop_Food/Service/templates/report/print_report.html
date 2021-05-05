@@ -62,12 +62,12 @@
     left: 50%;
     transform: translate(-50%, -50%);
 }
-        {#@media only screen and (max-width: 1280px) {#}
+        /* {#@media only screen and (max-width: 1280px) {#}
         {#    #btnPrint {#}
         {#        right: 0px;#}
         {#        top: 250px;#}
         {#    }#}
-        {#}#}
+        {#}#} */
 	</style>
 
 </head>
@@ -202,8 +202,8 @@
                 <div class="col-1 border border-dark">{{ data.quanty }}</div>
                 <div class="col-5">
                     <div class="row" style="height: 100%">
-                        <div class="col-6 border border-dark p-0">{{ data.unit }}</div>
-                        <div class="col-6 border border-dark border-right-large p-0">{{ data.status }}</div>
+                        <div class="col-6 border border-dark p-0">{{ data.status }}</div>
+                        <div class="col-6 border border-dark border-right-large p-0">{% if data.solution == None  %}  {% else %} {{data.solution}}{% endif %}</div>
                     </div>
                 </div>
             </div>
@@ -243,8 +243,9 @@
 			<div id="dulieu" style="font-size: 15px;"></div>
 
 
-		<div class="row dam border border-dark border-left-large border-right-large" style="height: 80px">ĐỀ NGHỊ CỦA ĐƠN VỊ LẬP BIÊN BẢN
-            <p>{{ detail_print_report.comment_created }}</p>
+		<div class="row dam border border-dark border-left-large border-right-large" style="height: 80px">
+			<div class="col-sm-12">ĐỀ NGHỊ CỦA ĐƠN VỊ LẬP BIÊN BẢN</div>
+			<p class="col-sm-12" style="font-weight: normal!important;">{{detail_print_report.comment_create }}</p>
         </div>
 
 		<div class="row mau dam">

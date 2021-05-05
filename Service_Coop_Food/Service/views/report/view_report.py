@@ -97,7 +97,7 @@ class ReportBillView(View):
                                                   bill_number = str(bill_numbers[index]),
                                                   sku=str(product_codes[index]),
                                                   name=str(product_names[index]),
-                                                  quanty=str(bill_numbers[index]),
+                                                  quanty=str(product_amounts[index]),
                                                   unit=str(product_units[index]),
                                                   status=str(status_bills[index]))
             with connection.cursor() as cur:
@@ -168,7 +168,7 @@ class ReportEditView(View):
         product_units = request.POST.getlist('input-product-unit[]', '')
         product_amounts = request.POST.getlist('input-product-amount[]', '')
         status_bills = request.POST.getlist('input-status-bill[]', '')
-        # ttpp_executes = request.POST.getlist('input-ttpp-execute[]', '')
+        ttpp_executes = request.POST.getlist('input-ttpp-execute[]', '')
         comment_create = request.POST.get('text_area_create', '')
         comment_ttpp = request.POST.get('text_area_ttpp', '')
         ttpp_cus = request.POST.get('select-ttpp', '')
@@ -180,8 +180,12 @@ class ReportEditView(View):
         old_value_report_str = '❥'.join(map(str,old_value_report))
         new_value_save_log = '❥'.join([str(number_xe), str(ttpp_cus) , str(comment_create), str(comment_ttpp)])
         if request.user.cus.ttpp == 1:
-            with transaction.atomic():
+            with transaction.atomic():                
                 edit_report = Report.objects.filter(group_bill=id, cus_id_id=id_cus).update(comment_ttpp = comment_ttpp)
+                id_edit_report = Report.objects.get(group_bill =id,cus_id_id = id_cus).id
+                edit_report_cmt = Report_ResultCheck.objects.filter(report_id=id_edit_report).values_list('id',flat=True)
+                for idx,value_id in enumerate(edit_report_cmt):
+                        Report_ResultCheck.objects.filter(id=value_id).update(solution = ttpp_executes[idx])
                 with connection.cursor() as cur:
                     cur.execute("INSERT INTO [" + str(id_cus) + "|log_change_status] (listcus_id, user_id, type,  old_status, new_status, group_hd, date_change) \
                                   VALUES (%s, %s, %s, %s, %s, %s,  GETDATE()) ", [id_cus, user_id, 3, old_value_report_str, new_value_save_log ,id])
@@ -196,10 +200,10 @@ class ReportEditView(View):
                                                       bill_number = str(bill_numbers[index]),
                                                       sku=str(product_codes[index]),
                                                       name=str(product_names[index]),
-                                                      quanty=str(bill_numbers[index]),
+                                                      quanty=str(product_amounts[index]),
                                                       unit=str(product_units[index]),
                                                       status=str(status_bills[index]))
-                                                      # solution=str(ttpp_executes[index]))
+                                                    #   solution=str(ttpp_executes[index]))
                 with connection.cursor() as cur:
                     cur.execute("UPDATE [" + str(id_cus) + "|bill] set status_other = 'N', has_report = 1, report_number = "+str(id_edit_report+400000)+", last_change_date = GETDATE(), user_id_change = " + str(user_id) + " where group_hd = '" + str(id) + "'")
                     cur.execute("INSERT INTO [" + str(id_cus) + "|log_change_status] (listcus_id, user_id, type,  old_status, new_status, group_hd, date_change) \

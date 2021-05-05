@@ -454,7 +454,7 @@ def export_excel_report_home(request):
         else:
             return JsonResponse({
                 'message': message_return,
-                'current_full_url': current_full_url.replace('http://127.0.0.1:5085/', 'https://sgc02.qlhd.vn/')
+                'current_full_url': current_full_url.replace('http://127.0.0.1:8080/', 'http://sgc.qlhd.vn/').replace('http://localhost:8080/', 'https://sgc.qlhd.vn/')
             })
 
 @allowed_permission(allowed_per = 'Xuất thống kê')
@@ -468,6 +468,7 @@ def export_statistical_home(request):
         date_to_convert = date[6:10] + '/' + date[3:5] + '/' + date[0:2] + ' 23:59:59'
         list_type_product_return = []
         list_dot_return = []
+        user_search = request.user.id
         if message == 'get_data':
             with connection.cursor() as cur:
                 query_type_product = "SELECT distinct tb2.id, tb2.name FROM ["+str(cus)+"|bill] as tb1 INNER JOIN [service_typeproduct] as tb2 \
@@ -475,13 +476,13 @@ def export_statistical_home(request):
                             tb1.type_product_id = tb2.id\
                         WHERE \
                             tb1.listcus_id = "+str(cus)+" and tb1.status_id in ("+str(','.join(list_status))+") \
-                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"'"
+                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_up = '" + str(user_search)+"'  "
                 query_dot = "SELECT distinct tb1.ket_thuc_dot_number FROM ["+str(cus)+"|bill] as tb1 INNER JOIN [service_typeproduct] as tb2 \
                          ON  \
                              tb1.type_product_id = tb2.id\
                          WHERE \
                              tb1.listcus_id = " + str(cus) + " and tb1.status_id in (" + str(','.join(list_status)) + ") \
-                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' "
+                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_up = '" + str(user_search)+"' "
                 list_type_product = cur.execute(query_type_product).fetchall()
                 list_dot  = cur.execute(query_dot).fetchall()
                 if len(list_type_product):
@@ -661,7 +662,7 @@ def change_status_many_bill_one_time(request):
         # nếu new_status = 'W', 'O' thì thoải mái không phải lo gì cả#
         ##Hóa các loại còn lại không chứa QA hoặc phải có ký hiệu hóa đơn
         if new_status in ['W', 'O']:
-            list_success = [ "'"+group.group_hd+"'" for group in groups]
+            list_success = [ "'"+group.group_hd+"'" for group in all_groups]
         else:
             for group in all_groups:
                 if(group.is_qa == 1):
