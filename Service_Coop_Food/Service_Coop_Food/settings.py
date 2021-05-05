@@ -28,7 +28,7 @@ SECRET_KEY = '!du@icdz0p9h$rr*!!v*h=kudhm+zugg-!105+glzkxjq8aph*'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = False
 
-ALLOWED_HOSTS = ['127.0.0.1' , 'sgc02.qlhd.vn']
+ALLOWED_HOSTS = ['localhost', '127.0.0.1', '210.2.93.45', '210.2.93.45:80','sgc.qlhd.vn' ]
 
 
 # Application definition

@@ -220,7 +220,8 @@
                                         <td><input type="text" value="" name="input-product-unit[]" ></td>
                                         <td><input type="text" value="" name="input-product-amount[]" ></td>
                                         <td><input type="text" value="" name="input-status-bill[]" ></td>
-                                        <td style="background-color: #e9ecef"></td>
+                                        <td style="background-color: #e9ecef"><input disabled style="background-color: #e9ecef" type="text" value="" name="input-ttpp-execute[]" ></td>
+                                        <!-- <td style="background-color: #e9ecef">123132</td> -->
                                     </tr>
                                     </tbody>
                                 </table>
@@ -236,7 +237,7 @@
                                 </div>
                                 <div>
                                     <h6>Hướng xử lý của TTPP</h6>
-                                    <textarea class="form-control textarea-comment-ttpp" disabled name="text_area_ttpp">
+                                    <textarea disabled style="background-color: #e9ecef" class="form-control textarea-comment-ttpp"  name="text_area_ttpp">
 
                                     </textarea>
                                 </div>
@@ -342,18 +343,20 @@
                                         <td><input type="text" value = "{{ detail.bill_number }}" name="input-bill_number[]" disabled></td>
                                         <td><input type="text" value="{{ detail.sku }}" name="input-product-code[]" disabled></td>
                                         <td><input type="text" value="{{ detail.name }}" name="input-product-name[]" disabled></td>
+                                        <td><input type="text" value="{{ detail.quanty }}" name="input-product-amount[]" disabled></td>
                                         <td><input type="text" value="{{ detail.unit }}" name="input-product-unit[]" disabled></td>
-                                        <td><input type="text" value="{{ detail.unit }}" name="input-product-amount[]" disabled></td>
                                         <td><input type="text" value="{{ detail.status }}" name="input-status-bill[]" disabled></td>
-{#                                        <td><input type="text" value="{% if detail.solution %}{{ detail.solution }}{% endif %}" name="input-ttpp-execute[]" disabled></td>#}
-                                        <td style="background-color: #e9ecef">{% if detail.solution %}{{ detail.solution }}{% endif %}</td>
+                                        <td style="background-color: #e9ecef"><input style="background-color: #e9ecef" type="text"value="{% if detail.solution %}{{ detail.solution }}{% endif %}" name="input-ttpp-execute[]" class="inputHuongXuLy" disabled></td>
+                                        <!-- <td style="background-color: #e9ecef" class="inputHuongXuLy">{% if detail.solution %}{{ detail.solution }}{% endif %}</td> -->
                                     </tr>
                                     {% endfor %}
                                     </tbody>
                                 </table>
                                     <div class="d-flex justify-content-end  div-add-line">
+                                        {% if request.user.cus.ttpp != 1%}
                                         <button type="button" class="btn btn-success d-none">+</button>
                                         <button type="button" class="btn btn-danger ml-1 d-none">-</button>
+                                        {% endif %}
                                     </div>
                             </div>
                             <div>
@@ -363,6 +366,7 @@
                                 </div>
                                 <div>
                                     <h6>Hướng xử lý của TTPP</h6>
+
                                     <textarea name="text_area_ttpp" class="form-control textarea-comment-ttpp" disabled >{% if detail_report.comment_ttpp %} {{ detail_report.comment_ttpp }} {% endif %}</textarea>
                                 </div>
 
@@ -380,7 +384,6 @@
 {% block add_js %}
     <script>
         $(document).ready(function () {
-
             var html_old_table = $('form tbody').html()
 
             $('#images').viewer({
@@ -395,29 +398,32 @@
                         rotateLeft: 4,
                         rotateRight: 4,
                     },
-                    {#movable: false,#}
+                    // {#movable: false,#}
                     tooltip: false,
                     fullscreen: false,
                 }
             );
-
+        
             $('.image-casorel').on('click', '.viewer-list  li img', function () {
-                console.log($(this).data('index'))
 
             })
-
             $('.btn-edit-report').on('click', function(){
                 $('.btn-save-report').toggleClass('d-none')
                 $('.btn-reset-report').toggleClass('d-none')
                 $('.btn-edit-report').addClass('d-none')
                 //nếu biên bản cũng thuộc ttpp thì xử lí như bt
-                if ('{{request.user.cus.ttpp}}' == '1' && {{ request.session.list_cus_manager }}.indexOf({{ detail_report.cus_id_id }}) == -1 ){
-                    $('.textarea-comment-ttpp').removeAttr('disabled')
-                    {#$('.div-add-line button').toggleClass('d-none')#}
+                if ('{{request.user.cus.ttpp}}' == '1' && {{ request.session.list_cus_manager }}.indexOf('{{ detail_report.cus_id_id }}') == -1 ){
+                    $('.textarea-comment-ttpp').removeAttr('disabled');
+                    $('.inputHuongXuLy').removeAttr('disabled')
+                    $('.inputHuongXuLy').prop('style',"background:'#ffffff'")
+                    $('.inputHuongXuLy').parent().prop('style',"background:'#ffffff'")
+
+                    $('.div-add-line button').toggleClass('d-none')
 
                 }
                 else{
                     $('.form-edit-report #input-so-xe, .form-edit-report table input, .textarea-comment-cus, .form-edit-report select').removeAttr('disabled')
+                    $('.inputHuongXuLy').attr('disabled', 'disabled')
                     $('.form-edit-report .span-info-detail').addClass('d-none')
                     $('#input-so-xe, .form-edit-report select').toggleClass('d-none')
                     $('.div-add-line button').toggleClass('d-none')
@@ -434,7 +440,7 @@
                 $('.div-add-line button').toggleClass('d-none')
                 $('#input-so-xe, .form-edit-report select').toggleClass('d-none')
                 $('.form-edit-report .span-info-detail').removeClass('d-none')
-                if ('{{request.user.cus.ttpp}}' == '1'  && {{ request.session.list_cus_manager }}.indexOf({{ detail_report.cus_id_id  }}) == -1 ){
+                if ('{{request.user.cus.ttpp}}' == '1'  && {{ request.session.list_cus_manager }}.indexOf('{{ detail_report.cus_id_id  }}') == -1 ){
                     $('.textarea-comment-ttpp').attr('disabled', 'disabled')
                     $('.div-add-line button').toggleClass('d-none')
                 }
@@ -532,7 +538,7 @@
                     '                                        <td><input type="text" value="" name="input-product-unit[]"></td>\n' +
                     '                                        <td><input type="text" value="" name="input-product-amount[]"></td>\n' +
                     '                                        <td><input type="text" value="" name="input-status-bill[]"></td>\n' +
-                    {#'                                        <td><input type="text" value="" name="input-ttpp-execute[]"></td>\n' +#}
+                    // '                                        <td><input type="text" value="" name="input-ttpp-execute[]"></td>\n' +
                     '                                        <td style="background-color: #e9ecef"></td>\n' +
                     '                                    </tr>')
             })
