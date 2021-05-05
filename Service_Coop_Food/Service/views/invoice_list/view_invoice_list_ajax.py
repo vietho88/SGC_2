@@ -340,5 +340,5 @@ def export_excel_report_invoice(request):
         else:
             return JsonResponse({
                 'message': message_return,
-                'current_full_url': current_full_url.replace('http://127.0.0.1:5085/', 'https://sgc02.qlhd.vn/')
+                'current_full_url': current_full_url.replace('http://127.0.0.1:8080/', 'http://sgc.qlhd.vn/').replace('http://localhost:8080/', 'https://sgc.qlhd.vn/')
             })
