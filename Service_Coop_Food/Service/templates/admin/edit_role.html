@@ -174,8 +174,8 @@
                     <tr>
                         <th></th>
                         <th>Chuyển sang O</th>
-                        <th>Chuyển sang S</th>
                         <th>Chuyển sang W</th>
+                        <th>Chuyển sang S</th>
                         <th>Chuyển sang A</th>
                         <th>Chuyển sang C</th>
                         <th>Chuyển sang H</th>
@@ -200,20 +200,6 @@
                         {% endfor%}
                     </tr>
                     <tr>
-                        <th>Từ trạng thái S</th>
-                        {% for data in list_exchange_status%}
-                            {% if data.1 !=  'S' %}
-                            {% if data.1 in list_exchange_from_S %}
-                                <td><input type="checkbox" checked name="checkbox_change_s[]"  value="{{data.1}}"></td>
-                            {% else %}
-                                <td><input type="checkbox"  name="checkbox_change_s[]"  value="{{data.1}}"></td>
-                            {% endif %}
-                            {% else %}
-                                <td></td>
-                            {% endif%}
-                        {% endfor%}
-                    </tr>
-                    <tr>
                         <th>Từ trạng thái W</th>
                         {% for data in list_exchange_status%}
                             {% if data.1 !=  'W' %}
@@ -221,6 +207,20 @@
                                 <td><input type="checkbox" checked name="checkbox_change_w[]"  value="{{data.1}}"></td>
                             {% else %}
                                 <td><input type="checkbox"  name="checkbox_change_w[]"  value="{{data.1}}"></td>
+                            {% endif %}
+                            {% else %}
+                                <td></td>
+                            {% endif%}
+                        {% endfor%}
+                    </tr>
+                    <tr>
+                        <th>Từ trạng thái S</th>
+                        {% for data in list_exchange_status%}
+                            {% if data.1 !=  'S' %}
+                            {% if data.1 in list_exchange_from_S %}
+                                <td><input type="checkbox" checked name="checkbox_change_s[]"  value="{{data.1}}"></td>
+                            {% else %}
+                                <td><input type="checkbox"  name="checkbox_change_s[]"  value="{{data.1}}"></td>
                             {% endif %}
                             {% else %}
                                 <td></td>

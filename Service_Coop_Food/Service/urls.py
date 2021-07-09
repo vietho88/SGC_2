@@ -20,7 +20,7 @@ from Service.views.admin import view_branch, view_user, view_site, view_permissi
 from Service.views.home import view_home_ajax, view_home, view_statistical
 from Service.views.warehouse import view_warehouse_ajax, view_warehouse
 from Service.views.detail import view_detail_ajax, view_detail
-from Service.views.report import view_report_ajax, view_report, view_report_warhouse
+from Service.views.report import view_report_ajax, view_report, view_report_warhouse,view_comment_ajax
 from Service.views.invoice_list import view_invoice_list, view_invoice_list_ajax
 from django.contrib.auth.decorators import login_required
 from django.conf import settings
@@ -101,7 +101,10 @@ urlpatterns = [
 
     re_path(r'^ajax/admin/change_option_site_add_user$', login_required(view_detail_ajax.change_option_site_add_user), name="ajax_change_option_site_add_user"),
     re_path(r'^ajax/clear_mac$', login_required(view_home_ajax.clear_mac), name="ajax_clear_mac"),
-
+    ### url get log rpa 
+    re_path(r'^ajax/detail_bill/get_log_rpa/(?P<id_cus>[0-9]{1,29})/(?P<group>[0-9]{1,29})/(?P<id>[0-9]{1,29})$', login_required(view_detail_ajax.get_log_rpa_to_show), name="ajax_get_log_rpa_show_detail"),
+    ### cmt ajax
+    re_path(r'^ajax/update_comment$', login_required(view_comment_ajax.update_comment), name="ajax_update_comment"),
     ### url to dowload file
     re_path(r'^dowload_media_file/(?P<type>(\w)+)/(?P<group_hd>[0-9]{1,29})/(?P<bill_id>[0-9]{1,9})/(?P<cus_id>[0-9]{1,9})$', login_required(view_detail.dowload_media_file),name="dowload_media_file"),
 

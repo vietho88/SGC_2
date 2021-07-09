@@ -74,13 +74,25 @@ class PrintStatistical(View):
                         and type_product_id in ("+str(str_type_product_chosed)+") \
                         and status_id in ("+str(str_status_chosed)+") \
                         and ket_thuc_dot_number in ("+str_batch_end_chosed+")  \
-                        and is_po <> 1  \
-                ORDER BY [index],  is_ttpp, upload_date "
+                        and is_po <> 1 and  is_ttpp=1\
+                ORDER BY   last_change_date"
+        sql2 = "SELECT bill_date, bill_number, vendor_number, city_name, result_check \
+               FROM ["+str(cus_chosed)+"|bill] as tb1 \
+                INNER JOIN Service_typeproduct as tb2 ON tb1.type_product_id = tb2.id \
+                WHERE \
+                        upload_date > '"+str(date_from_convert)+"' \
+                        and upload_date < '"+str(date_to_convert)+"' \
+                        and type_product_id in ("+str(str_type_product_chosed)+") \
+                        and status_id in ("+str(str_status_chosed)+") \
+                        and ket_thuc_dot_number in ("+str_batch_end_chosed+")  \
+                        and is_po <> 1 and  is_ttpp=0 \
+                ORDER BY   image_name  "
         with connection.cursor() as cursor:
-            bills = cursor.execute(sql).fetchall()
+            bills = cursor.execute(sql).fetchall()+ cursor.execute(sql2).fetchall()            
 
         ###Phải tính các giá trị tiền hàng VAT (split from resultcheck)
         bills_return = []
+        list_bill=[]
         for bill in bills:
             result_check_split = bill.result_check.split('‡')
             try:
@@ -122,7 +134,9 @@ class PrintStatistical(View):
             except Exception as error:
                 # print(error)
                 vat = 0
-            bills_return.append([bill.bill_date, bill.bill_number, bill.vendor_number, bill.city_name, tien_hang, vat, tien_vat, tien_thanh_toan])
+            if  bill.bill_number not in list_bill:
+                list_bill.append(bill.bill_number)
+                bills_return.append([bill.bill_date, bill.bill_number, bill.vendor_number, bill.city_name, tien_hang, vat, tien_vat, tien_thanh_toan])
         context = {
             'cus_name' : ListCus.objects.filter(id = cus_chosed).first().name.upper(),
             'str_list_product_name' : ', '.join(list_product_name),
