@@ -44,7 +44,8 @@ class DataTableHomeView(View):
         query_order = 'group_hd asc'
         if number_fieds_sort:
             query_order = self.find_order(number_fieds_sort, type)
-
+        user_search = request.user.id
+        user_symbol = request.user.role.symbol
         ###Search nâng cao
         if check_search_advance == 'true' :
             bill_number_seach  = request.GET.get('bill_number_search','')
@@ -78,11 +79,12 @@ class DataTableHomeView(View):
             search_for_report_number = "and report_number like '%" + str(report_number_search) + "%'"
             search_for_qa = "and is_qa = '" + str(qa_search) + "'"
             search_for_type_report = "and status_other = '" + str(type_report_search) + "'"
-            query_all = "SELECT  group_hd\
+            if user_symbol=='KHO':
+                query_all = "SELECT  group_hd\
                         FROM \
                             [dbo].[" + str(cus_search) + "|bill] \
-                        WHERE \
-                            listcus_id = " + str(cus_search) + " and status_id in (" + str(str_status_search) + ") \
+                        WHERE user_id_up = '" + str(user_search)+"' and \
+                            status_id in (" + str(str_status_search) + ") \
                             and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
                             and is_po <> 1 \
                             "+ (search_for_type_product if type_product_search != '' else '') +"  \
@@ -94,12 +96,293 @@ class DataTableHomeView(View):
                             "+ (search_for_po_number if po_number_search != '' else '') +"  \
                             "+ (search_for_report_number if report_number_search != '' else '') +"  \
                             "+ (search_for_qa if qa_search != '' else '') +"  \
-                            "+ (search_for_type_report if type_report_search != '' else '') +"  \
+                            "+ (search_for_type_report if type_report_search != '' else '') +"  or  \
+                            status_id =1 \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                            "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                            "+ (search_for_company_name if report_company_search != '' else '') +"  \
+                            "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                            "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                            "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                            "+ (search_for_po_number if po_number_search != '' else '') +"  \
+                            "+ (search_for_report_number if report_number_search != '' else '') +"  \
+                            "+ (search_for_qa if qa_search != '' else '') +"  \
+                            "+ (search_for_type_report if type_report_search != '' else '') +"   \
                         GROUP BY \
                             group_hd \
                         ORDER BY \
                             group_hd "
-            query2 = "SELECT\
+                
+                query2 = "SELECT\
+                            group_hd \
+                            ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') symbol\
+                            ,STRING_AGG(tb1.tax_number,'|')  tax_number\
+                            ,STRING_AGG(tb1.city_name,'|')  city_name\
+                            ,STRING_AGG(tb1.bill_date,'|')  bill_date\
+                            ,STRING_AGG(tb1.upload_date,'|') upload_date\
+                            ,STRING_AGG(tb1.status_id,'|') status_id\
+                            ,STRING_AGG(tb1.sum_po,'|') sum_po\
+                            ,STRING_AGG(tb1.vendor_number,'|') vendor_number\
+                            ,STRING_AGG(tb1.po_number,'|') po_number\
+                            ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
+                            ,STRING_AGG(tb1.is_qa,'|') is_qa\
+                            ,STRING_AGG(tb1.is_hddt,'|') is_hddt\
+                            ,STRING_AGG(tb1.has_report,'|') has_report\
+                            ,STRING_AGG(tb2.symbol, '<Br>') status_name\
+                            ,STRING_AGG(tb1.listcus_id,'|') \
+                            ,STRING_AGG(tb1.last_change_date,'|') last_change_date\
+                            ,STRING_AGG(tb3.name,'|') type_product_name\
+                            ,STRING_AGG(tb1.status_other,'|') status_other\
+                            ,STRING_AGG(tb1.report_number,'|') report_number\
+                            ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                            ,STRING_AGG(tb1.image_name,'|')  image_name \
+                        FROM \
+                            [dbo].[" + str(cus_search) + "|bill] as tb1 \
+                        INNER JOIN \
+                            [dbo].[service_statusbill] as tb2 \
+                        ON \
+                            tb1.status_id = tb2.id \
+                        INNER JOIN \
+                            [dbo].[service_typeproduct] as tb3 \
+                        ON \
+                            tb1.type_product_id = tb3.id \
+                        WHERE user_id_up = '" + str(user_search)+"' and\
+                            tb1.status_id in (" + str(str_status_search) + ")  \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            and tb1.is_po <> 1 \
+                            "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                            "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                            "+ (search_for_company_name if report_company_search != '' else '') +"  \
+                            "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                            "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                            "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                            " + (search_for_po_number if po_number_search != '' else '') + "  \
+                            " + (search_for_report_number if report_number_search != '' else '') + "  \
+                            " + (search_for_qa if qa_search != '' else '') + "  \
+                            " + (search_for_type_report if type_report_search != '' else '') + "  or  \
+                            tb1.status_id =1 \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                            "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                            "+ (search_for_company_name if report_company_search != '' else '') +"  \
+                            "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                            "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                            "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                            " + (search_for_po_number if po_number_search != '' else '') + "  \
+                            " + (search_for_report_number if report_number_search != '' else '') + "  \
+                            " + (search_for_qa if qa_search != '' else '') + "  \
+                            " + (search_for_type_report if type_report_search != '' else '') + "   \
+                        GROUP BY \
+                            group_hd \
+                        ORDER BY \
+                            " + str(query_order) + "\
+                        offset " + str(start_num) + " rows fetch next " + str(length_one_page) + " rows only "
+            else:
+                query_all = "SELECT  group_hd\
+                            FROM \
+                                [dbo].[" + str(cus_search) + "|bill] \
+                            WHERE \
+                                status_id in (" + str(str_status_search) + ") \
+                                and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                                and is_po <> 1 \
+                                "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                                "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                                "+ (search_for_company_name if report_company_search != '' else '') +"  \
+                                "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                                "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                                "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                                "+ (search_for_po_number if po_number_search != '' else '') +"  \
+                                "+ (search_for_report_number if report_number_search != '' else '') +"  \
+                                "+ (search_for_qa if qa_search != '' else '') +"  \
+                                "+ (search_for_type_report if type_report_search != '' else '') +"  \
+                            GROUP BY \
+                                group_hd \
+                            ORDER BY \
+                                group_hd "
+                query2 = "SELECT\
+                            group_hd \
+                            ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') symbol\
+                            ,STRING_AGG(tb1.tax_number,'|')  tax_number\
+                            ,STRING_AGG(tb1.city_name,'|')  city_name\
+                            ,STRING_AGG(tb1.bill_date,'|')  bill_date\
+                            ,STRING_AGG(tb1.upload_date,'|') upload_date\
+                            ,STRING_AGG(tb1.status_id,'|') status_id\
+                            ,STRING_AGG(tb1.sum_po,'|') sum_po\
+                            ,STRING_AGG(tb1.vendor_number,'|') vendor_number\
+                            ,STRING_AGG(tb1.po_number,'|') po_number\
+                            ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
+                            ,STRING_AGG(tb1.is_qa,'|') is_qa\
+                            ,STRING_AGG(tb1.is_hddt,'|') is_hddt\
+                            ,STRING_AGG(tb1.has_report,'|') has_report\
+                            ,STRING_AGG(tb2.symbol, '<Br>') status_name\
+                            ,STRING_AGG(tb1.listcus_id,'|') \
+                            ,STRING_AGG(tb1.last_change_date,'|') last_change_date\
+                            ,STRING_AGG(tb3.name,'|') type_product_name\
+                            ,STRING_AGG(tb1.status_other,'|') status_other\
+                            ,STRING_AGG(tb1.report_number,'|') report_number\
+                            ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                            ,STRING_AGG(tb1.image_name,'|')  image_name \
+                        FROM \
+                            [dbo].[" + str(cus_search) + "|bill] as tb1 \
+                        INNER JOIN \
+                            [dbo].[service_statusbill] as tb2 \
+                        ON \
+                            tb1.status_id = tb2.id \
+                        INNER JOIN \
+                            [dbo].[service_typeproduct] as tb3 \
+                        ON \
+                            tb1.type_product_id = tb3.id \
+                        WHERE \
+                            tb1.status_id in (" + str(str_status_search) + ")  \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            and tb1.is_po <> 1 \
+                            "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                            "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                            "+ (search_for_company_name if report_company_search != '' else '') +"  \
+                            "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                            "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                            "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                            " + (search_for_po_number if po_number_search != '' else '') + "  \
+                            " + (search_for_report_number if report_number_search != '' else '') + "  \
+                            " + (search_for_qa if qa_search != '' else '') + "  \
+                            " + (search_for_type_report if type_report_search != '' else '') + "  \
+                        GROUP BY \
+                            group_hd \
+                        ORDER BY \
+                            " + str(query_order) + "\
+                        offset " + str(start_num) + " rows fetch next " + str(length_one_page) + " rows only "
+        else:
+            if user_symbol=='KHO':
+                if '1' in str_status_search:
+                    query_all = "SELECT  group_hd\
+                            FROM \
+                                [dbo].[" + str(cus_search) + "|bill] \
+                            WHERE  user_id_up = '" + str(user_search)+"' and \
+                                status_id in (" + str(str_status_search) + ") \
+                                and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                                and is_po <> 1 or\
+                                status_id =1 \
+                                and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            GROUP BY \
+                                group_hd \
+                            ORDER BY \
+                                group_hd "
+
+                    query2 = "SELECT\
+                            group_hd \
+                            ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') symbol\
+                            ,STRING_AGG(tb1.tax_number,'|')  tax_number\
+                            ,STRING_AGG(tb1.city_name,'|')  city_name\
+                            ,STRING_AGG(tb1.bill_date,'|')  bill_date\
+                            ,STRING_AGG(tb1.upload_date,'|') upload_date\
+                            ,STRING_AGG(tb1.status_id,'|') status_id\
+                            ,STRING_AGG(tb1.sum_po,'|') sum_po\
+                            ,STRING_AGG(tb1.vendor_number,'|') vendor_number\
+                            ,STRING_AGG(tb1.po_number,'|') po_number\
+                            ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
+                            ,STRING_AGG(tb1.is_qa,'|') is_qa\
+                            ,STRING_AGG(tb1.is_hddt,'|') is_hddt\
+                            ,STRING_AGG(tb1.has_report,'|') has_report\
+                            ,STRING_AGG(tb2.symbol, '<Br>') status_name\
+                            ,STRING_AGG(tb1.listcus_id,'|') \
+                            ,STRING_AGG(tb1.last_change_date,'|') last_change_date\
+                            ,STRING_AGG(tb3.name,'|') type_product_name\
+                            ,STRING_AGG(tb1.status_other,'|') status_other\
+                            ,STRING_AGG(tb1.report_number,'|') report_number\
+                            ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                            ,STRING_AGG(tb1.image_name,'|')  image_name \
+                        FROM \
+                            [dbo].[" + str(cus_search) + "|bill] as tb1 \
+                        INNER JOIN \
+                            [dbo].[service_statusbill] as tb2 \
+                        ON \
+                            tb1.status_id = tb2.id \
+                        INNER JOIN \
+                            [dbo].[service_typeproduct] as tb3 \
+                        ON \
+                            tb1.type_product_id = tb3.id \
+                        WHERE \
+                            user_id_up = '" + str(user_search)+"' and  tb1.status_id in (" + str(str_status_search) + ")  \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            and tb1.is_po <> 1 or \
+                            tb1.status_id =1 \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                        GROUP BY \
+                            group_hd \
+                        ORDER BY \
+                            " + str(query_order) + "\
+                        offset " + str(start_num) + " rows fetch next " + str(length_one_page) + " rows only "
+                else:
+                    query_all = "SELECT  group_hd\
+                            FROM \
+                                [dbo].[" + str(cus_search) + "|bill] \
+                            WHERE  user_id_up = '" + str(user_search)+"' and\
+                                status_id in (" + str(str_status_search) + ") \
+                                and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                                and is_po <> 1 \
+                            GROUP BY \
+                                group_hd \
+                            ORDER BY \
+                                group_hd "
+
+                    query2 = "SELECT\
+                            group_hd \
+                            ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') symbol\
+                            ,STRING_AGG(tb1.tax_number,'|')  tax_number\
+                            ,STRING_AGG(tb1.city_name,'|')  city_name\
+                            ,STRING_AGG(tb1.bill_date,'|')  bill_date\
+                            ,STRING_AGG(tb1.upload_date,'|') upload_date\
+                            ,STRING_AGG(tb1.status_id,'|') status_id\
+                            ,STRING_AGG(tb1.sum_po,'|') sum_po\
+                            ,STRING_AGG(tb1.vendor_number,'|') vendor_number\
+                            ,STRING_AGG(tb1.po_number,'|') po_number\
+                            ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
+                            ,STRING_AGG(tb1.is_qa,'|') is_qa\
+                            ,STRING_AGG(tb1.is_hddt,'|') is_hddt\
+                            ,STRING_AGG(tb1.has_report,'|') has_report\
+                            ,STRING_AGG(tb2.symbol, '<Br>') status_name\
+                            ,STRING_AGG(tb1.listcus_id,'|') \
+                            ,STRING_AGG(tb1.last_change_date,'|') last_change_date\
+                            ,STRING_AGG(tb3.name,'|') type_product_name\
+                            ,STRING_AGG(tb1.status_other,'|') status_other\
+                            ,STRING_AGG(tb1.report_number,'|') report_number\
+                            ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                            ,STRING_AGG(tb1.image_name,'|')  image_name \
+                        FROM \
+                            [dbo].[" + str(cus_search) + "|bill] as tb1 \
+                        INNER JOIN \
+                            [dbo].[service_statusbill] as tb2 \
+                        ON \
+                            tb1.status_id = tb2.id \
+                        INNER JOIN \
+                            [dbo].[service_typeproduct] as tb3 \
+                        ON \
+                            tb1.type_product_id = tb3.id \
+                        WHERE \
+                            user_id_up = '" + str(user_search)+"' and  tb1.status_id in (" + str(str_status_search) + ")  \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            and tb1.is_po <> 1 \
+                        GROUP BY \
+                            group_hd \
+                        ORDER BY \
+                            " + str(query_order) + "\
+                        offset " + str(start_num) + " rows fetch next " + str(length_one_page) + " rows only "
+            else:
+
+                query_all = "SELECT  group_hd\
+                        FROM \
+                            [dbo].[" + str(cus_search) + "|bill] \
+                        WHERE \
+                            status_id in (" + str(str_status_search) + ") \
+                            and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                            and is_po <> 1 \
+                        GROUP BY \
+                            group_hd \
+                        ORDER BY \
+                            group_hd "
+
+                query2 = "SELECT\
                         group_hd \
                         ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') symbol\
                         ,STRING_AGG(tb1.tax_number,'|')  tax_number\
@@ -120,6 +403,8 @@ class DataTableHomeView(View):
                         ,STRING_AGG(tb3.name,'|') type_product_name\
                         ,STRING_AGG(tb1.status_other,'|') status_other\
                         ,STRING_AGG(tb1.report_number,'|') report_number\
+                        ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                        ,STRING_AGG(tb1.image_name,'|')  image_name \
                     FROM \
                         [dbo].[" + str(cus_search) + "|bill] as tb1 \
                     INNER JOIN \
@@ -131,77 +416,14 @@ class DataTableHomeView(View):
                     ON \
                         tb1.type_product_id = tb3.id \
                     WHERE \
-                        tb1.listcus_id = " + str(cus_search) + " and tb1.status_id in (" + str(str_status_search) + ")  \
+                        tb1.status_id in (" + str(str_status_search) + ")  \
                         and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
                         and tb1.is_po <> 1 \
-                        "+ (search_for_type_product if type_product_search != '' else '') +"  \
-                        "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
-                        "+ (search_for_company_name if report_company_search != '' else '') +"  \
-                        "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
-                        "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
-                        "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
-                        " + (search_for_po_number if po_number_search != '' else '') + "  \
-                        " + (search_for_report_number if report_number_search != '' else '') + "  \
-                        " + (search_for_qa if qa_search != '' else '') + "  \
-                        " + (search_for_type_report if type_report_search != '' else '') + "  \
                     GROUP BY \
                         group_hd \
                     ORDER BY \
                         " + str(query_order) + "\
                     offset " + str(start_num) + " rows fetch next " + str(length_one_page) + " rows only "
-        else:
-            query_all = "SELECT  group_hd\
-                    FROM \
-                        [dbo].[" + str(cus_search) + "|bill] \
-                    WHERE \
-                        listcus_id = " + str(cus_search) + " and status_id in (" + str(str_status_search) + ") \
-                        and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
-                        and is_po <> 1 \
-                    GROUP BY \
-                        group_hd \
-                    ORDER BY \
-                        group_hd "
-
-            query2 = "SELECT\
-                    group_hd \
-                    ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') symbol\
-                    ,STRING_AGG(tb1.tax_number,'|')  tax_number\
-                    ,STRING_AGG(tb1.city_name,'|')  city_name\
-                    ,STRING_AGG(tb1.bill_date,'|')  bill_date\
-                    ,STRING_AGG(tb1.upload_date,'|') upload_date\
-                    ,STRING_AGG(tb1.status_id,'|') status_id\
-                    ,STRING_AGG(tb1.sum_po,'|') sum_po\
-                    ,STRING_AGG(tb1.vendor_number,'|') vendor_number\
-                    ,STRING_AGG(tb1.po_number,'|') po_number\
-                    ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
-                    ,STRING_AGG(tb1.is_qa,'|') is_qa\
-                    ,STRING_AGG(tb1.is_hddt,'|') is_hddt\
-                    ,STRING_AGG(tb1.has_report,'|') has_report\
-                    ,STRING_AGG(tb2.symbol, '<Br>') status_name\
-                    ,STRING_AGG(tb1.listcus_id,'|') \
-                    ,STRING_AGG(tb1.last_change_date,'|') last_change_date\
-                    ,STRING_AGG(tb3.name,'|') type_product_name\
-                    ,STRING_AGG(tb1.status_other,'|') status_other\
-                    ,STRING_AGG(tb1.report_number,'|') report_number\
-                FROM \
-                    [dbo].[" + str(cus_search) + "|bill] as tb1 \
-                INNER JOIN \
-                    [dbo].[service_statusbill] as tb2 \
-                ON \
-                    tb1.status_id = tb2.id \
-                INNER JOIN \
-                    [dbo].[service_typeproduct] as tb3 \
-                ON \
-                    tb1.type_product_id = tb3.id \
-                WHERE \
-                    tb1.listcus_id = " + str(cus_search) + " and tb1.status_id in (" + str(str_status_search) + ")  \
-                    and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
-                    and tb1.is_po <> 1 \
-                GROUP BY \
-                    group_hd \
-                ORDER BY \
-                     " + str(query_order) + "\
-                offset " + str(start_num) + " rows fetch next " + str(length_one_page) + " rows only "
 
         with connection.cursor() as cur:
             total_record = len(cur.execute(query_all).fetchall())
@@ -243,6 +465,7 @@ class DataTableHomeView(View):
                         'type_product' : group[17].split('|')[0] if group[17] else '',
                         'status_other' : group[18].split('|')[0] if group[18] else '',
                         'report_number' : group[19].split('|')[0] if group[19] else '',
+                        'receiver_inv_pom' : group[20].split('|')[0] if group[20] else '',   
                      }
                     data.append(temp)
                 except Exception as e :
@@ -259,7 +482,7 @@ class DataTableHomeView(View):
     @staticmethod
     def find_order(field, type):
         dict_option = {
-            0: 'group_hd',
+            0: 'image_name',
             1: 'symbol',
             2: 'report_number',
             3: 'tax_number',
@@ -366,12 +589,12 @@ def export_excel_report_home(request):
         search_for_report_number = "and po_number like '%" + str(report_number_search) + "%'"
         search_for_qa = "and is_qa = '" + str(qa_search) + "'"
         search_for_type_report = "and status_other = '" + str(type_report_search) + "'"
-        query = "SELECT\
+        query1 = "SELECT\
                 tb1.symbol as symbol, tb1.bill_number as bill_number , tb1.bill_date as bill_date, \
                 tb1.tax_number as tax_number, tb1.city_name as city_name, tb1.city_address as city_address, \
                 tb2.symbol as status_name, tb1.result_check as result_check, tb1.vendor_number as vendor_number, \
                 tb1.po_number as po_number, tb3.name as type_product, tb1.ket_thuc_dot_number as ket_thuc_dot_number \
-                ,tb1.report_number, tb1.status_other, tb1.result_check_luoi, tb1.receiver_number \
+                ,tb1.report_number, tb1.status_other, tb1.result_check_luoi, tb1.receiver_number,convert(varchar, tb1.upload_date, 103) as upload \
                 FROM \
                     [dbo].[" + str(cus_search) + "|bill] as tb1 \
                 INNER JOIN \
@@ -393,12 +616,41 @@ def export_excel_report_home(request):
                     "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
                     " + (search_for_po_number if po_number_search != '' else '') + "  \
                     " + (search_for_qa if qa_search != '' else '') + "  \
-                    " + (search_for_type_report if type_report_search != '' else '') + "  \
-                ORDER BY \
-                    group_hd "
+                    " + (search_for_type_report if type_report_search != '' else '') + "  and  is_ttpp=1\
+                ORDER BY   last_change_date"
+        query2 = "SELECT\
+                tb1.symbol as symbol, tb1.bill_number as bill_number , tb1.bill_date as bill_date, \
+                tb1.tax_number as tax_number, tb1.city_name as city_name, tb1.city_address as city_address, \
+                tb2.symbol as status_name, tb1.result_check as result_check, tb1.vendor_number as vendor_number, \
+                tb1.po_number as po_number, tb3.name as type_product, tb1.ket_thuc_dot_number as ket_thuc_dot_number \
+                ,tb1.report_number, tb1.status_other, tb1.result_check_luoi, tb1.receiver_number,convert(varchar, tb1.upload_date, 103) as upload \
+                FROM \
+                    [dbo].[" + str(cus_search) + "|bill] as tb1 \
+                INNER JOIN \
+                    [dbo].[service_statusbill] as tb2 \
+                ON \
+                    tb1.status_id = tb2.id \
+                INNER JOIN \
+                    [dbo].[service_typeproduct] as tb3 \
+                ON \
+                    tb1.type_product_id = tb3.id \
+                WHERE \
+                    tb1.listcus_id = " + str(cus_search) + " and tb1.status_id in (" + str(str_status_search) + ")  \
+                    and upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
+                    and tb1.is_po <> 1 and tb1.status_id <> 1\
+                    "+ (search_for_type_product if type_product_search != '' else '') +"  \
+                    "+ (search_for_bill_number if bill_number_seach != '' else '') +"  \
+                    "+ (search_for_tax_number if tax_number_search != '' else '') +"  \
+                    "+ (search_for_vendor_number if vendor_number_search != '' else '') +"  \
+                    "+ (search_for_receiver_number if receiver_number_search != '' else '') +"  \
+                    " + (search_for_po_number if po_number_search != '' else '') + "  \
+                    " + (search_for_qa if qa_search != '' else '') + "  \
+                    " + (search_for_type_report if type_report_search != '' else '') + "  and  is_ttpp=0 \
+                ORDER BY   image_name  "
+                                        # " + (search_for_user_search) + "  \
         current_full_url = request.build_absolute_uri()
         with connection.cursor() as cursor:
-            bills = cursor.execute(query).fetchall()
+            bills = cursor.execute(query1).fetchall()+cursor.execute(query2).fetchall()
 
         message_return = 'nodata' if bills == [] else 'success'
         money_before_tax = ''
@@ -419,7 +671,7 @@ def export_excel_report_home(request):
                 dict_bill = [
                     index,
                     name_cus,
-                    bill.bill_date,
+                    bill.upload,
                     bill.symbol,
                     bill.bill_number ,
                     bill.report_number if bill.report_number != '0' else '',
@@ -475,14 +727,18 @@ def export_statistical_home(request):
                         ON  \
                             tb1.type_product_id = tb2.id\
                         WHERE \
-                            tb1.listcus_id = "+str(cus)+" and tb1.status_id in ("+str(','.join(list_status))+") \
-                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_up = '" + str(user_search)+"'  "
+                            tb1.status_id in ("+str(','.join(list_status))+") \
+                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_up = '" + str(user_search)+"' or \
+                            tb1.status_id in ("+str(','.join(list_status))+") \
+                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_change = '" + str(user_search)+"'    "
                 query_dot = "SELECT distinct tb1.ket_thuc_dot_number FROM ["+str(cus)+"|bill] as tb1 INNER JOIN [service_typeproduct] as tb2 \
                          ON  \
                              tb1.type_product_id = tb2.id\
                          WHERE \
-                             tb1.listcus_id = " + str(cus) + " and tb1.status_id in (" + str(','.join(list_status)) + ") \
-                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_up = '" + str(user_search)+"' "
+                            tb1.status_id in (" + str(','.join(list_status)) + ") \
+                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_up = '" + str(user_search)+"' or\
+                            tb1.status_id in   (" + str(','.join(list_status)) + ") \
+                            and upload_date > '"+date_from_convert+"' and upload_date < '"+date_to_convert+"' and user_id_change = '" + str(user_search)+"'     "
                 list_type_product = cur.execute(query_type_product).fetchall()
                 list_dot  = cur.execute(query_dot).fetchall()
                 if len(list_type_product):
@@ -671,7 +927,7 @@ def change_status_many_bill_one_time(request):
                     list_fail_because_data.append(group.group_hd)
                 else:
                     list_success.append("'"+group.group_hd+"'")
-
+        list_success=list(filter(lambda x: x.replace("'","") not in list_fail_because_qa , list_success))
         id_new_status = StatusBill.objects.get(symbol = new_status).id
         user_id = request.user.id
         if list_success:
@@ -725,12 +981,12 @@ def print_pdf_pom(request):
         if message == 'get_type_product':
             if type == 'pom':
                 with connection.cursor() as cur:
-                    list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from ["+str(cus)+"|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where ISNULL(receiver_number,'') != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 7 and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
+                    list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from ["+str(cus)+"|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where receiver_number is not null and receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 8 and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
             else:
                 with connection.cursor() as cur:
                     id_r = StatusBill.objects.get(symbol = 'M').id
                     list_type_product = cur.execute("SELECT distinct tb1.type_product_id, tb2.name from [" + str(
-                        cus) + "|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where status_id = "+str(id_r)+"  and po_number like 'I%' and upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 7  and ket_thuc_dot_number <> 100 order by type_product_id").fetchall()
+                        cus) + "|bill] as tb1 join service_typeproduct as tb2 on tb1.type_product_id = tb2.id  where status_id = "+str(id_r)+"  and ISNUMERIC(po_number) = 0 and upload_date > '" + str(date_find_from) + "'  and upload_date < '"+ str(date_find_to) +"' and tb2.id <> 8  and ket_thuc_dot_number <> 100   order by type_product_id").fetchall()
             list_return = [ list(x) for x in list_type_product]
 
             return JsonResponse({
@@ -742,7 +998,7 @@ def print_pdf_pom(request):
             if type == 'pom':
                 with connection.cursor() as cur:
                     list_type_product = cur.execute("SELECT distinct ket_thuc_dot_number from [" + str(
-                        cus) + "|bill]   where ISNULL(receiver_number,'') != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
+                        cus) + "|bill]   where receiver_number is not null and receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
                         date_find_to) + "'  and ket_thuc_dot_number <> 100 and type_product_id in ("+list_product+") order by ket_thuc_dot_number  ").fetchall()
             else:
@@ -750,9 +1006,9 @@ def print_pdf_pom(request):
                     id_r = StatusBill.objects.get(symbol='M').id
                     list_type_product = cur.execute("SELECT distinct ket_thuc_dot_number from [" + str(
                         cus) + "|bill] where status_id = " + str(
-                        id_r) + "  and po_number like 'I%' and upload_date > '" + str(
+                        id_r) + "  and ISNUMERIC(po_number) = 0 and upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
-                        date_find_to) + "' and  ket_thuc_dot_number <> 100 and type_product_id in ("+list_product+") order by ket_thuc_dot_number  ").fetchall()
+                        date_find_to) + "' and  ket_thuc_dot_number <> 100 and type_product_id in ("+list_product+")  order by ket_thuc_dot_number ").fetchall()
             list_return = [list(x) for x in list_type_product]
 
             return JsonResponse({
@@ -764,53 +1020,73 @@ def print_pdf_pom(request):
             list_product = ','.join(request.GET.getlist('list_product[]', ['1000']))
             list_end_batch = ','.join(request.GET.getlist('list_end_batch[]', ['1000']))
             if type == 'pom':
-                where_clause = "ISNULL(receiver_number,'') != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
+                where_clause = "receiver_number != '' and ISNUMERIC(po_number) = 1 and  upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
-                        date_find_to) + "'  and ket_thuc_dot_number in ("+list_end_batch+") and type_product_id in (" + list_product + ")   and is_po <> 1 "
+                        date_find_to) + "'  and ket_thuc_dot_number in ("+list_end_batch+") and type_product_id in (" + list_product + ")   and is_po <> 1  "
+                query_select_all = "SELECT\
+                                        group_hd \
+                                        ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') bill_number\
+                                        ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
+                                        ,STRING_AGG(tb1.ket_thuc_dot_number,'|') end_batch_number\
+                                        ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                                        ,STRING_AGG(tb3.name,'|') name_type\
+                                        ,STRING_AGG(tb1.image_name,'|') image_name\
+                                    FROM \
+                                        [dbo].[" + str(cus) + "|bill] as tb1 \
+                                    INNER JOIN \
+                                        [dbo].[service_typeproduct] as tb3 \
+                                    ON \
+                                        tb1.type_product_id = tb3.id \
+                                    WHERE "+str(where_clause)+"\
+                                    GROUP BY \
+                                        group_hd \
+                                    ORDER BY \
+                                        image_name "
             else:
                 id_r = StatusBill.objects.get(symbol='M').id
                 where_clause = "status_id = " + str(
-                        id_r) + "  and po_number like 'I%' and upload_date > '" + str(
+                        id_r) + "  and ISNUMERIC(po_number) = 0 and upload_date > '" + str(
                         date_find_from) + "'  and upload_date < '" + str(
                         date_find_to) + "' and  ket_thuc_dot_number in ("+list_end_batch+") and type_product_id in (" + list_product + ")  and is_po <> 1  "
-            query_select_all = "SELECT\
-                                    group_hd \
-                                    ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') bill_number\
-                                    ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
-                                    ,STRING_AGG(tb1.ket_thuc_dot_number,'|') end_batch_number\
-                                    ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
-                                    ,STRING_AGG(tb3.name,'|') name_type\
-                                FROM \
-                                    [dbo].[" + str(cus) + "|bill] as tb1 \
-                                INNER JOIN \
-                                    [dbo].[service_typeproduct] as tb3 \
-                                ON \
-                                    tb1.type_product_id = tb3.id \
-                                WHERE "+str(where_clause)+"\
-                                GROUP BY \
-                                    group_hd \
-                                ORDER BY \
-                                    group_hd "
+                query_select_all = "SELECT\
+                                        group_hd \
+                                        ,STRING_AGG(concat(tb1.symbol, '-', tb1.bill_number), '<Br>') bill_number\
+                                        ,STRING_AGG(tb1.receiver_number,'|') receiver_number\
+                                        ,STRING_AGG(tb1.ket_thuc_dot_number,'|') end_batch_number\
+                                        ,STRING_AGG(tb1.src_receiver,'|') src_receiver\
+                                        ,STRING_AGG(tb3.name,'|') name_type\
+                                        ,STRING_AGG(last_change_date,'|') last_change_date\
+                                    FROM \
+                                        [dbo].[" + str(cus) + "|bill] as tb1 \
+                                    INNER JOIN \
+                                        [dbo].[service_typeproduct] as tb3 \
+                                    ON \
+                                        tb1.type_product_id = tb3.id \
+                                    WHERE "+str(where_clause)+"\
+                                    GROUP BY \
+                                        group_hd \
+                                    ORDER BY \
+                                        last_change_date "
 
             base_path = settings.MEDIA_ROOT
             with connection.cursor() as cur:
                 all_group_bill_limit = cur.execute(query_select_all).fetchall()
                 data = []
                 for group in all_group_bill_limit:
-                    try:
-                        src_receiver = group.src_receiver.split('|')[0]
+                    if group.src_receiver:
+                        src_receiver = group.src_receiver.split('|')[0] 
                         if os.path.exists(base_path + src_receiver):
                             temp = {
                                 'group': group.group_hd,
                                 'reciever_number': group.receiver_number.split('|')[0] if group.receiver_number else '' ,
-                                'type_product': group.name_type.split('|')[0] if group.name_type else '',
-                                'bill_number': group.bill_number.split('|')[0] if group.bill_number else '',
-                                'end_batch': group.end_batch_number.split('|')[0] if group.end_batch_number else '',
+                                'type_product': group.name_type.split('|')[0],
+                                'bill_number': group.bill_number.split('|')[0],
+                                'end_batch': group.end_batch_number.split('|')[0],
                                 'src_receiver': src_receiver,
                             }
                             data.append(temp)
-                    except Exception as e:
-                        print("3")
+                    # except Exception as e:
+                    #     print(e)
             if len(data):
                 return JsonResponse({
                     'message' : 'success',
@@ -825,9 +1101,16 @@ def print_pdf_pom(request):
         id_cus = request.POST.get('id_cus')
         list_id = ','.join( [ "'" + str(x) + "'" for x in (request.POST.getlist('input_id_print[]', ['0']))])
         with connection.cursor() as cursor:
-            list_exist = cursor.execute(
-                "select distinct  src_receiver from [" + str(id_cus) + "|bill] where group_hd in (" + str(list_id) + ") and is_po <> 1 ").fetchall()
-
+            check = cursor.execute(  "select 1 from [" + str(id_cus) + "|bill] where group_hd in (" + str(list_id) + ") and is_po <> 1 and ISNUMERIC(po_number) = 1 ").fetchone()
+            if check :
+                list_exist = cursor.execute(
+                    "select  src_receiver from [" + str(id_cus) + "|bill] where group_hd in (" + str(list_id) + ") and is_po <> 1 and src_receiver is not null order by image_name").fetchall()
+            else :
+                list_exist = cursor.execute(
+                    "select  src_receiver from [" + str(id_cus) + "|bill] where group_hd in (" + str(list_id) + ") and is_po <> 1 and src_receiver is not null order by last_change_date").fetchall()
+        # squared = list(map(lambda x: x[0], list_exist))
+        # my_new_list = list(set(squared))
+        list_distrint=[]
         base_path = settings.MEDIA_ROOT
         base_forder = base_path + 'pdf_merge/' + str(request.user.cus_id)
         if not os.path.exists(base_forder):
@@ -837,8 +1120,9 @@ def print_pdf_pom(request):
         from PyPDF2 import PdfFileMerger
         merger = PdfFileMerger()
         for pdf in list_exist:
-            #if pdf.src_receiver:
-            if os.stat(base_path + pdf.src_receiver).st_size>500:
+            # if pdf.src_receiver:
+            if os.stat(base_path + pdf.src_receiver).st_size>500 and pdf.src_receiver not in list_distrint:
+                list_distrint.append(pdf.src_receiver)
                 merger.append(base_path + pdf.src_receiver)
             
         merger.write(base_forder + path_save)

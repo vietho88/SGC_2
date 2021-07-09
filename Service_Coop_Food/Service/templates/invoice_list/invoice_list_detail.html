@@ -99,7 +99,74 @@
     }
 
     </style>
+<style>
 
+    .mytext{
+    border:0;padding:10px;background:whitesmoke;
+}
+
+
+.avatar{
+display:flex;
+justify-content:center;
+align-items:center;
+width:25%;
+float:left;
+padding-right:10px;
+}
+.macro{
+margin-top:5px;width:85%;border-radius:5px;padding:5px;display:flex;
+}
+.msj-rta{
+float:right;background:whitesmoke;
+}
+.msj{
+float:left;background:white;
+}
+.frame{
+background:#e0e0de;
+height:450px;
+overflow:hidden;
+padding:0;
+}
+.frame > div:last-of-type{
+position:absolute;bottom:0;width:100%;display:flex;
+}
+body > div > div > div:nth-child(2) > span{
+background: whitesmoke;padding: 10px;font-size: 21px;border-radius: 50%;
+}
+body > div > div > div.msj-rta.macro{
+margin:auto;margin-left:1%;
+}
+
+.msj:before{
+width: 0;
+height: 0;
+content:"";
+top:-5px;
+left:-14px;
+position:relative;
+border-style: solid;
+border-width: 0 13px 13px 0;
+border-color: transparent #ffffff transparent transparent;            
+}
+
+input:focus{
+outline: none;
+}        
+::-webkit-input-placeholder { /* Chrome/Opera/Safari */
+color: rgb(65, 64, 64);
+}
+::-moz-placeholder { /* Firefox 19+ */
+color: rgb(65, 64, 64);
+}
+:-ms-input-placeholder { /* IE 10+ */
+color: rgb(65, 64, 64);
+}
+:-moz-placeholder { /* Firefox 18- */
+color: rgb(65, 64, 64);
+}  
+</style>
     {% block add_css_detail %}
     {% endblock %}
 {% endblock %}
@@ -299,6 +366,24 @@
 {#                        </div>#}
 {#                        <button type="submit">SUBMIT</button>#}
                     </form>
+<!----modal comment-->
+<div class="" style="position: relative;top: 20px;">
+
+    <div class="col-sm-3 col-sm-offset-4 frame" style="max-width: 100%;height: 167px!important;">
+        <div id='comment_str' style="width:100%;list-style-type: none;padding:10px;position:absolute;bottom:40px;display:flex;flex-direction: column;top:0;overflow: auto;">
+
+        </div>
+        <div>
+            <div class="msj-rta macro" style="width: 95%;padding: 0px!important">                        
+                    <input type='text' class="" placeholder="Type a message" id='comment_text' style="width:100%;padding: 7px;" >
+            </div>
+            <div style="padding:5px;">
+                <button type="button" class="comment_user btn btn-info"> Gửi</button>
+            </div>                
+        </div>
+    </div>   
+    
+</div>
                 </div>
                 {% endblock %}
             </div>
@@ -470,7 +555,61 @@
             $('.only-input-float-or-qa').on('input' , function () {
                 this.value = this.value.replace(/[^0-9\[QA\].]/g, '').replace(/(\..*)\./g, '$1')
              })
+                        // comment BK
+                        $.ajax({
+                    
+                    type: "GET",
+                    url: '/ajax/update_comment',
+                    // processData: false,
+                    // contentType: false,
+                    data : {
+                        image_name: '{{list_invoice.image_name}}'
+                    },
+                    success: function (data) {
+                        console.log(data)
+                        var data_list_cmt = '';
 
+                        data['data'].forEach(element => {
+                            var comment_text =  '<p style="margin-bottom: 0.2rem;"> '+element.user_created +' : '+element.comment_text +'</p>'
+                            data_list_cmt += comment_text
+                        });
+                        
+                        $("#comment_str").html(data_list_cmt)
+                        var element = document.getElementById("comment_str");
+                        element.scrollTop = element.scrollHeight;
+                        
+                    }
+                });
+            $('.comment_user').on('click', function (){
+                form_data = new FormData()
+                if ($('#comment_text').val().trim() != ''){
+                    form_data.append('comment_text',$('#comment_text').val())
+                    form_data.append('image_name','{{list_invoice.image_name}}')
+                    $.ajax({
+                    type: "POST",
+                    url: '/ajax/update_comment',
+                    
+                    processData: false,
+                    contentType: false,
+                    data:form_data,
+                    success: function (data) {
+                        console.log(data)
+                        var data_list_cmt = '';
+
+                        data['data'].forEach(element => {
+                            var comment_text =  '<p style="margin-bottom: 0.2rem;"> '+element.user_created +' : '+element.comment_text +'</p>'
+                            data_list_cmt += comment_text
+                        });
+                        
+                        $("#comment_str").html(data_list_cmt)
+                        var element = document.getElementById("comment_str");
+                        element.scrollTop = element.scrollHeight;
+                        document.getElementById("comment_text").value = "";
+                    }
+                });
+                }
+                
+            })
             //Show log change bk
             $('.btn-wath-log').on('click', function () {
                 let id = '{{ list_invoice.id  }}';

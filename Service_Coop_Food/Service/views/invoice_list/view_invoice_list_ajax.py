@@ -74,7 +74,7 @@ class DataTableHomeInvoiceListView(View):
                              " + ("and bk_number like '%" + str(bk_number_search) + "%'" if bk_number_search != '' else '') + " \
                              "+ (type_product_search  if len(type_product) > 0  else '' )  + " "
 
-        query_str = "SELECT tb1.id as id_list_invoice, type_bk,isnull(bk_number,'') as bk_number, isnull(po_number,'') as po_number, isnull(receiver_number,'') as receiver_number, vendor_number, is_qa, result_check, name, upload_date, src_img , last_change_date FROM ["+str(cus_search)+"|bk] as tb1 \
+        query_str = "SELECT tb1.id as id_list_invoice, type_bk,isnull(bk_number,'') as bk_number, isnull(po_number,'') as po_number, isnull(receiver_number,'') as receiver_number, vendor_number, is_qa, result_check, name, upload_date, src_img , last_change_date,image_name,src_receiver FROM ["+str(cus_search)+"|bk] as tb1 \
                         INNER JOIN service_typeproduct  as tb2 ON tb1.type_bk = tb2.id \
                         WHERE  \
                              upload_date > '" + date_from_convert + "' and upload_date < '" + date_to_convert + "'  \
@@ -110,7 +110,8 @@ class DataTableHomeInvoiceListView(View):
                     'is_qa': invoice.is_qa,
                     'src_img': invoice.src_img,
                     'id_list_invoice': invoice.id_list_invoice,
-                    'last_change_date': invoice.last_change_date,
+                    'last_change_date': invoice.last_change_date,                    
+                    'receiver_inv_pom' :  invoice.src_receiver,
 
                 }
                 data.append(temp)
@@ -128,7 +129,7 @@ class DataTableHomeInvoiceListView(View):
     @staticmethod
     def find_order(field, type):
         dict_option = {
-            0: 'tb1.id',
+            0: 'tb1.image_name',
             1: 'bk_number',
             2: 'type_bk',
             3: 'po_number',
@@ -191,7 +192,7 @@ def find_bill_to_print_pom(request):
         date_find_to = date_search[6:10] + '/' + date_search[3:5] + '/' + date_search[0:2] + ' 23:59:59'
         with connection.cursor() as cursor:
             list_invoice = cursor.execute("select bk_number, receiver_number , src_receiver, id, vendor_number from  [" + str(
-                id_cus) + "|bk] where type_bk in ("+str(list_product)+")  and receiver_number <> '' and isnull(src_receiver,'') <> '' and upload_date > %s  and upload_date < %s ",
+                id_cus) + "|bk] where type_bk in ("+str(list_product)+")  and receiver_number <> '' and isnull(src_receiver,'') <> '' and upload_date > %s  and upload_date < %s  order by image_name ",
                                           [date_find_from, date_find_to]).fetchall()
         if len(list_invoice):
             base_path = settings.MEDIA_ROOT
@@ -208,7 +209,7 @@ def find_bill_to_print_pom(request):
         id_cus = request.POST.get('id_cus')
         list_id = ','.join(request.POST.getlist('input_id_print[]', ['0']))
         with connection.cursor() as cursor:
-            list_exist = cursor.execute("select src_receiver from ["+str(id_cus)+"|bk] where id in ("+str(list_id)+")").fetchall()
+            list_exist = cursor.execute("select src_receiver from ["+str(id_cus)+"|bk] where id in ("+str(list_id)+") order by image_name").fetchall()
 
         base_path = settings.MEDIA_ROOT
         base_forder = base_path + '/pdf_merge/' + str(request.user.cus_id)

@@ -112,7 +112,7 @@ class RoleEditView(View):
                 except expression as identifier:
                     list_exchange_from_C = [recent.new_status]
         list_exchange_status = [
-            [1, 'O'], [2, 'S'], [3, 'W'], [4, 'A'], [5, 'C'],
+            [1, 'O'], [3, 'W'], [2, 'S'],  [4, 'A'], [5, 'C'],
             [6, 'H'], [7, 'R'], [8, 'M'], [9, 'V'],
         ]
         context = {
@@ -188,7 +188,7 @@ class RoleAddView(View):
     @method_decorator(user_passes_test(lambda u: u.is_superuser))
     def get(self, request):
         list_exchange_status = [
-            [1, 'O'], [2, 'S'], [3, 'W'], [4, 'A'], [5, 'C'],
+            [1, 'O'], [3, 'W'], [2, 'S'], [4, 'A'], [5, 'C'],
             [6, 'H'], [7, 'R'], [8, 'M'], [9, 'V'],
         ]
         list_all_permission = Permission.objects.all()

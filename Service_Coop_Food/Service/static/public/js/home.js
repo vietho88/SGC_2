@@ -81,7 +81,11 @@ $(document).ready(function () {
         {
             "targets": 16, // your case first column
             "className": "align-middle",
-        }
+        },
+        {
+            "targets": 17, // your case first column
+            "className": "align-middle",
+        },
     ]
 
     var SETTING_DATATABLE_COLUMN = [
@@ -184,7 +188,17 @@ $(document).ready(function () {
                     return ""
                 }
             },
-        }
+        },
+        {
+            "data": "receiver_inv_pom",
+            "render": function (data) {
+                if (data != "") {
+                    return "<i class='fas fa-check'></i>"
+                } else {
+                    return ""
+                }
+            },
+        },
     ]
     $('#input_date_from, #input_date_to, #input_date_export_thong_ke, #input_date_from_change_status, #input_date_print_pom').datepicker({
         todayBtn: "linked",
@@ -289,7 +303,7 @@ $(document).ready(function () {
                     d.type_report = $('.select-type-report').val()
                     d.type_qa = $('.select-qa').val()
                     d.po_number = $('#inputPONumber').val()
-                    d.check_seach_advance = check
+                    d.check_seach_advance = "true"
                 }
             },
             "columns": SETTING_DATATABLE_COLUMN,
@@ -339,7 +353,7 @@ $(document).ready(function () {
                     d.type_report = $('.select-type-report').val()
                     d.type_qa = $('.select-qa').val()
                     d.po_number = $('#inputPONumber').val()
-                    d.check_seach_advance = check
+                    d.check_seach_advance = "true"
                 }
             },
             "columns": SETTING_DATATABLE_COLUMN,
@@ -524,6 +538,7 @@ $(document).ready(function () {
                 date_from : $('#input_date_from').val(),
                 date_to : $('#input_date_to').val(),
                 check_seach_advance : check_expand,
+
                 message : message
             },
             success : function (data) {
@@ -618,64 +633,171 @@ $(document).ready(function () {
 
     })
 
-    //Submit change many
-    $('.btn-submit-change-many').click(function () {
-        if(!$('.table-change-many-status tbody input[type="checkbox"]:checked').length){
-            alertSwalTopRight('info', 'Bạn chưa chọn bộ hóa đơn nào cả !!')
-            return false
-        }
-        Swal.fire({
-                    title: 'Bạn có chắc chắn?',
-                    text: 'Chuyển tất cả các hóa đơn đã chọn sang trạng thái '+ $('.select-change-status-many').val() +'!!',
-                    icon: 'warning',
-                    showCancelButton: true,
-                    confirmButtonColor: '#17a2b8',
-                    cancelButtonColor: '#d33',
-                    confirmButtonText: 'Có, chắc chắn!',
-        }).then((result) => {
-            var list_group = []
-            if (result.isConfirmed) {
-                $('.table-change-many-status tbody input[type="checkbox"]:checked').each(function (i) {
-                    console.log($(this).closest('td').find('input[type="hidden"]').val())
-                    list_group.push($(this).closest('td').find('input[type="hidden"]').val())
-                    console.log(list_group)
-                })
-                var form_data = new FormData(document.getElementById('form_change_many_status'))
-                form_data.append('groups', list_group)
-                $.ajax({
-                    url : "/ajax/home/change_many_status",
-                    type : 'POST',
-                    data: form_data,
-                    contentType : false,
-                    processData : false,
-                    success: function (data) {
-                        if(data.message == 'success'){
-                            swal.fire({
-                                icon : 'success',
-                                title : 'Kết quả',
-                                html : 'Thành công : '+ data.list_success.length +' <br>' +
-                                       'Thất bại vì bộ còn QA : '+ data.list_fail_because_qa.length +' <br>' +
-                                        'Thất bại vì bộ còn chưa đủ dữ liệu cần thiết : '+ data.list_fail_because_data.length +' <br>'
+//Submit change many
+$('.btn-submit-change-many').click(function () {
+    if(!$('.table-change-many-status tbody input[type="checkbox"]:checked').length){
+        alertSwalTopRight('info', 'Bạn chưa chọn bộ hóa đơn nào cả !!')
+        return false
+    }
+    Swal.fire({
+                title: 'Bạn có chắc chắn?',
+                text: 'Chuyển tất cả các hóa đơn đã chọn sang trạng thái '+ $('.select-change-status-many').val() +'!!',
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#17a2b8',
+                cancelButtonColor: '#d33',
+                confirmButtonText: 'Có, chắc chắn!',
+    }).then((result) => {
+        var list_group = []
+        if (result.isConfirmed) {
+            $('.table-change-many-status tbody input[type="checkbox"]:checked').each(function (i) {
+                console.log($(this).closest('td').find('input[type="hidden"]').val())
+                list_group.push($(this).closest('td').find('input[type="hidden"]').val())
+                console.log(list_group)
+            })
+            var form_data = new FormData(document.getElementById('form_change_many_status'))
+            form_data.append('groups', list_group)
+            $.ajax({
+                url : "/ajax/home/change_many_status",
+                type : 'POST',
+                data: form_data,
+                contentType : false,
+                processData : false,
+                success: function (data) {
+                    if(data.message == 'success'){
+                        swal.fire({
+                            icon : 'success',
+                            title : 'Kết quả',
+                            html : 'Thành công : '+ data.list_success.length +' <br>' +
+                                   'Thất bại vì bộ còn QA : '+ data.list_fail_because_qa.length +' <br>' +
+                                    'Thất bại vì bộ còn chưa đủ dữ liệu cần thiết : '+ data.list_fail_because_data.length +' <br>'
 
-                            })
-                            $('.table-change-many-status tbody tr ').each(function (i) {
-                                group = $(this).find('td:first input[type="hidden"]').val()
-                                group_find_index = "'" + group + "'"
-                                if (data.list_success.indexOf(group_find_index) != -1){
-                                    $(this).remove()
+                        })
+                        $('.table-change-many-status tbody tr ').each(function (i) {
+                            group = $(this).find('td:first input[type="hidden"]').val()
+                            group_find_index = "'" + group + "'"
+                            if (data.list_success.indexOf(group_find_index) != -1){
+                                $(this).remove()
+                            }
+                        })
+                        $.ajax({
+                            url : '/ajax/home/get_bill_change_many_status',
+                            type : 'get',
+                            data : {
+                                status_find : $('#select_status_home_change_status').val(),
+                                cus_find : $('#select_cus_home_change_status').val(),
+                                type_product_find : $('#select_product_home_change_status').val(),
+                                batch_end_find : $('#select_dot_home_change_status').val(),
+                                date: $('#input_date_from_change_status').val(),
+                            },
+                            success : function (data) {
+                                if (data.message == 'success' && data.group_bills.length > 0){
+                                    html_table = ''
+                                    html_select_new_status = ''
+                                    // data.list_per_change.forEach(function (element) {
+                                    //     html_select_new_status += "<option value='" + element + "'> Chuyển sang  " + element + "</option>"
+                                    // })
+                                    data.group_bills.forEach(function (e, index) {
+                                        var sum_po = (e.sum_po == '[QA]') ? 'QA' : (e.sum_po == '') ? '' : parseFloat(e.sum_po).toLocaleString()
+                                        html_table += '<tr role="row" class="odd">\n' +
+                                            '                                        <td class="text-center align-middle"> <input type="checkbox"> <input type="hidden" value="'+e.group+'"> </td>\n' +
+                                            '                                        <td class="text-center align-middle">'+(Number(index)+1)+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.symbol+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.tax_number+'</td>\n' +
+                                            '                                        <td class="align-middle">'+e.city_name+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.date_group_bill+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+ sum_po +'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.vendor_number+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+ ((e.is_qa == '1') ? (true, "<i class=\"fas fa-check  \"></i>") : "") +'</td>\n' +
+                                            '                                    </tr>'
+                                    })
+                                    $(".table-change-many-status").DataTable().destroy()
+                                    $("#id_cus_change_many").val($('#select_cus_home_change_status').val())
+                                    $('.table-change-many-status tbody ').html(html_table)
+                                    // $('.select-change-status-many').html(html_select_new_status)
+                                    $(".table-change-many-status").DataTable({
+                                        searching : true,
+                                        ordering : false,
+                                        pageLength : 100,
+                                        paging : false,
+                                        language: {
+                                            paginate: {
+                                                "first": "Trang đầu",
+                                                "last": "Trang cuối",
+                                                "next": "Trang trước",
+                                                "previous": "Trang sau"
+                                            },
+                                            info: "Hiển thị _START_ đến _END_ của _TOTAL_ dòng",
+                                            processing:     "Đang xử lí, vui lòng đợi !!! ",
+                                            zeroRecords:    "Không có bộ hóa đơn cần tìm kiếm.",
+                                            search : "Tìm kiếm"
+                                        }
+                                    })
                                 }
-                            })
-                            // $('.table-change-many-status tbody ').html('')
-                            // $('.btn-search-change-many-status').click()
-                        }
-                    },
-                    error: function (data) {
-
+                                else if (data.message == 'success' && data.group_bills.length == 0){
+                                    html_table = ''
+                                    html_select_new_status = ''
+                                    // data.list_per_change.forEach(function (element) {
+                                    //     html_select_new_status += "<option value='" + element + "'> Chuyển sang  " + element + "</option>"
+                                    // })
+                                    data.group_bills.forEach(function (e, index) {
+                                        var sum_po = (e.sum_po == '[QA]') ? 'QA' : (e.sum_po == '') ? '' : parseFloat(e.sum_po).toLocaleString()
+                                        html_table += '<tr role="row" class="odd">\n' +
+                                            '                                        <td class="text-center align-middle"> <input type="checkbox"> <input type="hidden" value="'+e.group+'"> </td>\n' +
+                                            '                                        <td class="text-center align-middle">'+(Number(index)+1)+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.symbol+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.tax_number+'</td>\n' +
+                                            '                                        <td class="align-middle">'+e.city_name+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.date_group_bill+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+ sum_po +'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+e.vendor_number+'</td>\n' +
+                                            '                                        <td class="text-center align-middle">'+ ((e.is_qa == '1') ? (true, "<i class=\"fas fa-check  \"></i>") : "") +'</td>\n' +
+                                            '                                    </tr>'
+                                    })
+                                    $(".table-change-many-status").DataTable().destroy()
+                                    $("#id_cus_change_many").val($('#select_cus_home_change_status').val())
+                                    $('.table-change-many-status tbody ').html(html_table)
+                                    // $('.select-change-status-many').html(html_select_new_status)
+                                    $(".table-change-many-status").DataTable({
+                                        searching : true,
+                                        ordering : false,
+                                        pageLength : 100,
+                                        paging : false,
+                                        language: {
+                                            paginate: {
+                                                "first": "Trang đầu",
+                                                "last": "Trang cuối",
+                                                "next": "Trang trước",
+                                                "previous": "Trang sau"
+                                            },
+                                            info: "Hiển thị _START_ đến _END_ của _TOTAL_ dòng",
+                                            processing:     "Đang xử lí, vui lòng đợi !!! ",
+                                            zeroRecords:    "Không có bộ hóa đơn cần tìm kiếm.",
+                                            search : "Tìm kiếm"
+                                        }
+                                    })
+                                }
+                                else{
+                                    html_batch = ''
+                                    $('#select_dot_home_change_status').html(html_batch)
+                                    $('#select_dot_home_change_status').selectpicker('refresh')
+                                }
+                                $('.table-change-many-status input[type="checkbox"]').prop('checked', false)
+                            },
+                            error : function (data) {
+                            }
+                        })
+                        // $('.table-change-many-status tbody ').html('')
+                        // $('.btn-search-change-many-status').click()
                     }
-                })
-            }
-        })
+                },
+                error: function (data) {
+
+                }
+            })
+        }
     })
+})
 
     //reset modal
     $('#modal_change_more_status').on('hidden.bs.modal', function (e) {

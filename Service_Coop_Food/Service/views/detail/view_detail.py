@@ -125,8 +125,8 @@ class DetailBillView(View):
             result_check_luoi_oke = self.split_result_check_luoi(result_check_luoi, 8)
             check_trung = str(tax_number)+'‡'+str(bill_number)+'‡'+str(result_check[18])
         with transaction.atomic():
-            ##update thong tin chung của bộ và result check, result_check_luoi cua chinh no
-            sql_update_common = "UPDATE ["+str(id_cus)+"|bill] SET status_rpa = CASE WHEN status_id = 4 THEN null ELSE status_rpa END,type_product_id  = %s \
+            ##update thong tin chung của bộ và result check, result_check_luoi cua chinh no #status_rpa =CASE WHEN status_id = 4 THEN null WHEN status_id = 5 THEN null WHEN status_id = 6 THEN 'Receiver' ELSE status_rpa END,
+            sql_update_common = "UPDATE ["+str(id_cus)+"|bill] SET  type_product_id  = %s \
                                                             ,tax_number = %s\
                                                             ,bill_date = CASE WHEN id = "+str(bill_id)+ " THEN %s ELSE bill_date END\
                                                             ,city_name = %s\

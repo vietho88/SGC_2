@@ -104,24 +104,44 @@ def api_export_excel(request):
     id_user = request.user.id
 
     with connection.cursor() as cursor:
-        find_dot_sql = cursor.execute(
-            "SELECT distinct(ket_thuc_dot_number) from dbo.[" + str(id_cus) + "|bill] as tb1 join service_statusbill on tb1.status_id = service_statusbill.id where service_statusbill.symbol = '" + str(
-                status) + "' and convert(varchar, upload_date, 112) = '" + date + "' ").fetchall()
-        if  len(find_dot_sql) > 0:
-            str_dots = ','.join([str(x[0]) for x in find_dot_sql])
+        # find_dot_sql = cursor.execute(
+        #     "SELECT distinct(ket_thuc_dot_number) from dbo.[" + str(id_cus) + "|bill] as tb1 join service_statusbill on tb1.status_id = service_statusbill.id where service_statusbill.symbol = '" + str(
+        #         status) + "' and convert(varchar, upload_date, 112) = '" + date + "' ").fetchall()
+        # if  len(find_dot_sql) > 0:
+        #     str_dots = ','.join([str(x[0]) for x in find_dot_sql])
+        # else:
+        #     return JsonResponse({
+        #         'message': 'No batch found!!'
+        #     })
+        if str_status ==6:
+            sql_list_hdgroup = cursor.execute("SELECT   group_hd  \
+                    FROM dbo.[" + str(id_cus) + "|bill] \
+                    WHERE is_po <> 1  and status_id = "+str(str_status)+"  and type_product_id in  (" + str(list_nganh_hang_search) + ")  \
+                        and convert(varchar, upload_date, 112) = '" + date + "' and result_check is not null ").fetchall()
+            list_grouphd = list(map(lambda x: "'"+str(x[0])+"'", sql_list_hdgroup))
+            string_grop = ','.join(list_grouphd)
+            if string_grop!='':
+                sql_list_bill = cursor.execute("SELECT  tb1.result_check, isnull(tb1.result_check_luoi,'') as result_check_luoi, tb1.image_name, tb1.id, tb3.name, \
+                        isnull(tb2.name,'') as name, tb1.status_id, tb1.po_number,tb1.sum_po, tb1.group_hd , \
+                        convert(varchar, tb1.upload_date, 120) as N'Ngày Tạo', convert(varchar, tb1.last_change_date, 120) as last_change_date, \
+                        tb1.status_other, tb1.ket_thuc_dot_number, tb1.is_qa, tb1.tax_number, tb1.is_qa,  tb1.is_hddt, tb1.vendor_number, tb1.symbol, tb1.bill_number, tb1.bill_date, \
+                        tb1.city_name, tb1.city_address,  \
+                        tb1.status_rpa, tb1.receiver_number,convert(varchar, tb1.upload_date, 103) as upload_date, tb3.address, tb3.name as name_cus FROM dbo.[" + str(id_cus) + "|bill] as tb1 \
+                            INNER JOIN service_typeproduct as tb2 ON tb1.type_product_id = tb2.id INNER JOIN service_Listcus as tb3 ON tb3.Id = tb1.listcus_id \
+                        WHERE tb1.is_po <> 1  and   tb1.group_hd in  (" + str(string_grop) + ")  \
+                        order by tb1.ket_thuc_dot_number, tb1.type_product_id ,tb1.last_change_date, tb1.upload_date").fetchall()
+            else:
+                sql_list_bill=[]
         else:
-            return JsonResponse({
-                'message': 'No batch found!!'
-            })
-        sql_list_bill = cursor.execute("SELECT  tb1.result_check, isnull(tb1.result_check_luoi,'') as result_check_luoi, tb1.image_name, tb1.id, tb3.name, \
-                   isnull(tb2.name,'') as name, tb1.status_id, tb1.po_number,tb1.sum_po, tb1.group_hd , \
-                   convert(varchar, tb1.upload_date, 120) as N'Ngày Tạo', convert(varchar, tb1.last_change_date, 120) as last_change_date, \
-                   tb1.status_other, tb1.ket_thuc_dot_number, tb1.is_qa, tb1.tax_number, tb1.is_qa,  tb1.is_hddt, tb1.vendor_number, tb1.symbol, tb1.bill_number, tb1.bill_date, \
-                   tb1.city_name, tb1.city_address,  \
-                   tb1.status_rpa, tb1.receiver_number,convert(varchar, tb1.upload_date, 103) as upload_date, tb3.address, tb3.name as name_cus FROM dbo.[" + str(id_cus) + "|bill] as tb1 \
-                    INNER JOIN service_typeproduct as tb2 ON tb1.type_product_id = tb2.id INNER JOIN service_Listcus as tb3 ON tb3.Id = tb1.listcus_id \
-                   WHERE tb1.is_po <> 1 and  tb1.ket_thuc_dot_number in (" + str(str_dots) + ")  and tb1.status_id = "+str(str_status)+"  and tb1.type_product_id in  (" + str(list_nganh_hang_search) + ")  \
-                    and convert(varchar, upload_date, 112) = '" + date + "' and result_check is not null  order by tb1.ket_thuc_dot_number, tb1.type_product_id ,tb1.last_change_date, tb1.upload_date").fetchall()
+            sql_list_bill = cursor.execute("SELECT  tb1.result_check, isnull(tb1.result_check_luoi,'') as result_check_luoi, tb1.image_name, tb1.id, tb3.name, \
+                    isnull(tb2.name,'') as name, tb1.status_id, tb1.po_number,tb1.sum_po, tb1.group_hd , \
+                    convert(varchar, tb1.upload_date, 120) as N'Ngày Tạo', convert(varchar, tb1.last_change_date, 120) as last_change_date, \
+                    tb1.status_other, tb1.ket_thuc_dot_number, tb1.is_qa, tb1.tax_number, tb1.is_qa,  tb1.is_hddt, tb1.vendor_number, tb1.symbol, tb1.bill_number, tb1.bill_date, \
+                    tb1.city_name, tb1.city_address,  \
+                    tb1.status_rpa, tb1.receiver_number,convert(varchar, tb1.upload_date, 103) as upload_date, tb3.address, tb3.name as name_cus FROM dbo.[" + str(id_cus) + "|bill] as tb1 \
+                        INNER JOIN service_typeproduct as tb2 ON tb1.type_product_id = tb2.id INNER JOIN service_Listcus as tb3 ON tb3.Id = tb1.listcus_id \
+                    WHERE tb1.is_po <> 1 and   tb1.status_id = "+str(str_status)+"  and tb1.type_product_id in  (" + str(list_nganh_hang_search) + ")  \
+                        and convert(varchar, upload_date, 112) = '" + date + "' and result_check is not null  order by tb1.ket_thuc_dot_number, tb1.type_product_id ,tb1.last_change_date, tb1.upload_date").fetchall()
 
     if len(sql_list_bill) == 0:
         return JsonResponse({
@@ -342,8 +362,8 @@ def Upload_HDDT_TTPP(request):
         with connection.cursor() as cursor:
             status_id = 1
             #idcus = str(cursor.execute("select id from dbo.Service_listcus where id_old ="+idcus_old+"").fetchone()[0])
-            cursor.execute("Insert into dbo.["+idcus+"|bill](listcus_id,status_id,type_product_id,group_hd,image_name,po_number,vendor_number,sum_po,tax_number,symbol,bill_number,city_name,city_address,bill_date,ket_thuc_dot_number,upload_date,result_check,result_check_luoi,is_qa,is_hddt,user_id_up,src_pdf,src_xml,src_image) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", [
-                        idcus, status_id, typehd, group_hd, imgname.strip(), mapo, mavender, tongtien, mst, khhd, shd, tencty, diachi, ngayhd, ktd, upday, thue_str, luoi, tickqa, hddt, request.user.id, "pdf/"+invoice_Folder+"/"+filenamePDF, "pdf/"+invoice_Folder+"/"+filenameXML, "img/"+invoice_Folder+"/"+filenameIMG]).commit()
+            cursor.execute("Insert into dbo.["+idcus+"|bill](listcus_id,status_id,type_product_id,group_hd,image_name,po_number,vendor_number,sum_po,tax_number,symbol,bill_number,city_name,city_address,bill_date,ket_thuc_dot_number,upload_date,result_check,result_check_luoi,is_qa,is_hddt,user_id_up,src_pdf,src_xml,src_image,is_ttpp) values (%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s,%s)", [
+                        idcus, status_id, typehd, group_hd, imgname.strip(), mapo, mavender, tongtien, mst, khhd, shd, tencty, diachi, ngayhd, ktd, upday, thue_str, luoi, tickqa, hddt, request.user.id, "pdf/"+invoice_Folder+"/"+filenamePDF, "pdf/"+invoice_Folder+"/"+filenameXML, "img/"+invoice_Folder+"/"+filenameIMG,1]).commit()
     except Exception as Error:
         if os.path.isfile (dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF):
             os.remove(dir_storage+"/pdf/"+invoice_Folder+"/"+filenamePDF)
@@ -410,16 +430,19 @@ def update_bill_for_image(request):
     vendor_number = request.POST.get('vendor', '')
     status_rpa = request.POST.get('status_rpa', '')
     #id_cus = request.user.cus_id
-    # id_cus = request.POST.get('id_cus', '')
+    log = request.POST.get('log', None)
+    rb_name =  request.POST.get('robot_name', '')
     user_id = request.user.id
-    store = request.POST.get('store', None)    
+    store = request.POST.get('store', None)  
+    if '' in [image_name, store]:
+        return JsonResponse({'message' : 'missing para require'})  
     with connection.cursor() as cursor:
         try:  
             id_cus =  cursor.execute("SELECT Id  from [Service_listcus] WHERE store_number =%s ", [store]).fetchone()[0]
+            bill_id = str(cursor.execute("select Id from ["+str(id_cus)+"|bill] where  image_name = %s  ",[image_name]).fetchone().Id)
         except:
-            return JsonResponse({"message": "store is Error"}, status=400)
-    if '' in [image_name, store]:
-        return JsonResponse({'message' : 'missing para require'})
+            return JsonResponse({"message": "store or image_name is Error"}, status=400)
+    
 
     if status != '':
         status = StatusBill.objects.get(symbol = status).id
@@ -433,19 +456,24 @@ def update_bill_for_image(request):
                                           " + str_update_status + " \
                                           " + str_update_status_rpa + " \
                                             last_change_date = getdate(), user_id_change = %s \
-                                    WHERE image_name = %s and is_po <> 1"
+                                    WHERE Id = %s and is_po <> 1"
     # with transaction.atomic():
     with connection.cursor() as cursor:
         try:
+            if  log==None:
+                cursor.execute(query_update, [user_id, bill_id])
+            else:
+                status_rpa=log
             # find_old_status = cursor.execute("SELECT status_id,vendor_number, status_rpa, id  from ["+str(id_cus)+"|bill] WHERE \
             #                                   image_name = %s and is_po <> 1 ",[ str(image_name)]).fetchone()
-            cursor.execute(query_update, [user_id, image_name])
+            
             # old_values_save_log = '❥'.join(str(x) if x != None else '' for x in find_old_status)
             # new_values_save_log = '❥'.join([str(status), vendor_number, status_rpa])
             # ###lưu log##type = 9 là robot update theo ten anh###
-            # cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, bill_id) \
-            #                                  VALUES (%s, %s, %s, getdate(), %s, %s, %s)",
-            #             [id_cus, user_id, 9, old_values_save_log, new_values_save_log, find_old_status.id])  ###update log
+            new_values_save_log= rb_name +' : '+ status_rpa
+            cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change,  new_status, bill_id) \
+                                              VALUES (%s, %s, %s, getdate(), %s,  %s)",
+                         [id_cus, user_id, 9,  new_values_save_log, bill_id])  ###update log
             cursor.commit()
         except Exception as e:
             print(e)
@@ -501,13 +529,17 @@ def upload_pdf_receiver(request):
     fs = FileSystemStorage(location=folder_save)  # defaults to   MEDIA_ROOT
     fs.save(myfile.name, myfile)
     name =myfile.name.split('.pdf')[0]
-    
+    if os.stat(folder_save + '/' + myfile.name).st_size<75:
+        os.remove(folder_save + '/' + myfile.name)
+        return JsonResponse({'message': 'error file'}, status=200)
     with connection.cursor() as cur :
         try:
             if '_'  in name:
                 cur.execute("UPDATE ["+str(id_cus)+"|bk] set src_receiver = %s where image_name = %s" , ['pdf_receiver/' + folder + '/' + myfile.name, name+'.jpg']).commit()
             else:
-                cur.execute("UPDATE ["+str(id_cus)+"|bill] set src_receiver = %s where group_hd = %s" , ['pdf_receiver/' + folder + '/' + myfile.name, name]).commit()
+                pathpdf ='pdf_receiver/' + folder + '/' + myfile.name
+                cur.execute("UPDATE ["+str(id_cus)+"|bill] set  src_receiver = N'"+pathpdf+"' where group_hd = '"+name+"'" ).commit()   #status_id = case when status_id =4 and ISNUMERIC(po_number) = 1 and po_number!='00000000' then  6 when  status_id = 4 and ISNUMERIC(po_number) = 0 and upper(po_number) not like '%S%' then 8 else status_id end,status_rpa = case when status_id =4 and ISNUMERIC(po_number) = 1 and po_number!='00000000' then  'Receiver' else status_rpa end,
+                #cur.execute("UPDATE ["+str(id_cus)+"|bill] set  src_receiver = %s where group_hd = %s" , ['pdf_receiver/' + folder + '/' + myfile.name, name]).commit()
         except:
             return JsonResponse({'message': 'error'}, status=200)
             
@@ -568,13 +600,16 @@ def api_check_exist_symbol_number(request):
     else:
         with connection.cursor() as cursor:
             try:
-                sql_check = cursor.execute("SELECT image_name from ["+str(id_cus)+"|bill] WHERE symbol = %s and bill_number = %s and status_id=6",
+                sql_check = cursor.execute("SELECT image_name,group_hd from ["+str(id_cus)+"|bill] WHERE symbol = %s and bill_number = %s and status_id=6",
                                            [symboy_number, bill_number]).fetchall()
                 if sql_check:
                     list_image =list(map(lambda x: x[0], sql_check))
+                    count_bill =  cursor.execute("SELECT count( DISTINCT bill_number )  from ["+str(id_cus)+"|bill] WHERE group_hd = %s and is_po =0",
+                                           [sql_check[0][1]]).fetchone()[0]
                     return JsonResponse({
                         'message': 'Thành công',
-                        'image_name': list_image
+                        'image_name': list_image,
+                        'count':str(count_bill)
                     }, safe=False)
                 else:
                     return JsonResponse({
@@ -600,6 +635,8 @@ def api_update_group_bill(request):
     status_rpa = request.POST.get('status_rpa', '')
     upload_date = request.POST.get('upload_date', '')  ##format 12/12/2020
     #id_cus = request.user.cus_id
+    log = request.POST.get('log', None)
+    rb_name =  request.POST.get('robot_name', '')
     store = request.POST.get('store', None)    
     with connection.cursor() as cursor:
         try:  
@@ -635,13 +672,17 @@ def api_update_group_bill(request):
         try:
             # find_old_status = cursor.execute(
             #     "SELECT status_id,po_number,receiver_number,vendor_number, status_rpa  from ["+str(id_cus)+"|bill] WHERE group_hd = %s and is_po <> 1 ", [group_hd]).fetchone()
-            cursor.execute(query_update, [user_id])
+            if log==None:
+                cursor.execute(query_update, [user_id])
+            else:
+                status_rpa=log
             # old_values_save_log = '❥'.join(str(x) if x != None else '' for x in find_old_status)
             # new_values_save_log = '❥'.join([str(status), po_number, receiver_number, vendor_number, status_rpa ])
             # ###lưu log##type = 8 là robot update ###
-            # cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change, old_status, new_status, group_hd) \
-            #                              VALUES (%s, %s, %s, getdate(), %s, %s, %s)",
-            #             [id_cus, user_id, 8, old_values_save_log, new_values_save_log,group_hd])  ###update log
+            new_values_save_log= rb_name +' : '+ status_rpa
+            cursor.execute("INSERT INTO ["+str(id_cus)+"|log_change_status] (listcus_id, user_id, type, date_change,  new_status, group_hd) \
+                                         VALUES (%s, %s, %s, getdate(), %s,  %s)",
+                        [id_cus, user_id, 8,  new_values_save_log,group_hd])  ###update log
             cursor.commit()
         except Exception as e:
             print(e)
@@ -671,8 +712,11 @@ def auto_check_miss_po(request):
     data = {'reciver':[] }
     foldernow = settings.MEDIA_ROOT + "pdf_receiver/"
     with connection.cursor() as cursor:
-        result = cursor.execute(
-            "Select group_hd,po_number,Receiver_number from dbo.[" +str(id_cus)+"|bill ] where  convert(varchar, Upload_date, 103)='"+strdateSearch+"' and ISNULL(Receiver_number,'') !='' ").fetchall()
+        result1 = cursor.execute(
+            "Select group_hd,po_number,Receiver_number from dbo.[" +str(id_cus)+"|bill ] where  convert(varchar, Upload_date, 103)='"+strdateSearch+"' and ISNULL(Receiver_number,'') !='' and status_id in(6,8) and ISNUMERIC(po_number) = 1 ").fetchall()
+        result2 = cursor.execute(
+            "Select group_hd,po_number,Receiver_number from dbo.[" +str(id_cus)+"|bill ] where  convert(varchar, Upload_date, 103)='"+strdateSearch+"' and status_id in(8) and ISNUMERIC(po_number) = 0 ").fetchall()
+    result = result1+result2
     for item in result:
         hdprop = item[0]
         dayup = hdprop[2:8]

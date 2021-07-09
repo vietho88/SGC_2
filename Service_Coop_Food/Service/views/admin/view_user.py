@@ -245,10 +245,10 @@ def reset_pass(request):
             elif message == 'lock':
                 old_lock_status = user[0].is_lock
                 if old_lock_status :
-                    user.update(is_lock = False)
+                    user.update(is_lock = False,is_take_photo=True)
                     lock_status = 0
                 else:
-                    user.update(is_lock = True)
+                    user.update(is_lock = True,is_take_photo=False)
                     lock_status = 1
                 message_success ='Success'
         else:
