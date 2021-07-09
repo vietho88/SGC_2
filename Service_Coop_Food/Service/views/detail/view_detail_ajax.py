@@ -26,7 +26,7 @@ def update_status_group_bill(request):
         cus_id = request.POST.get('input-cus-id', None)
         type_product_id = request.POST.get('type_product', None)
         user_id = request.user.id
-        # cus_id = request.user.cus.id
+        cus_id_old = request.user.cus.id_old
         if id_group is None or symbol_new_status is None:
             message = "Error"
         else:
@@ -45,29 +45,30 @@ def update_status_group_bill(request):
 
             ##check qa with to -> A,H,C , R, V,M : không được QA, phải đầy đủ thông tin
             with connection.cursor() as cur:
-                sql_check = cur.execute("SELECT is_qa, symbol FROM ["+str(cus_id)+"|bill] WHERE group_hd = '"+str(id_group)+"' AND is_po <> 1 ").fetchone()
-            if symbol_new_status in ['A', 'H', 'C', 'R', 'V', 'F'] :
-                if sql_check.is_qa == 1:
-                    return JsonResponse({
-                        'message': 'errorqa',
-                    })
-                elif not sql_check.symbol:
-                    return JsonResponse({
-                        'message': 'erroenough',
-                    })
-
+                sql_check = cur.execute("SELECT is_qa, symbol,type_product_id,is_po,isnull(po_number,'')+'|'+isnull(vendor_number,'')+'|'+isnull(receiver_number,'')+'|'+isnull(sum_po,'')+'|'+tax_number+'|'+symbol+'|'+bill_number+'|'+city_address+'|'+city_name+bill_date+'|'+result_check+'|'+result_check_luoi as tonghop FROM ["+str(cus_id)+"|bill] WHERE group_hd = '"+str(id_group)+"' ").fetchall() #AND is_po <> 1 
+            
+            for item in sql_check:
+                if symbol_new_status in ['A','R']  :                    
+                    if item.is_qa == 1 or '[QA]' in str(item.tonghop):
+                            return JsonResponse({
+                                'message': 'errorqa',
+                            })
+                    elif not item.symbol and int(item.type_product_id) !=9 and int(item.is_po)==0  :
+                        return JsonResponse({
+                            'message': 'erroenough',
+                        })            
             ##Néu chuyển từ trạng thái O thì phải thay đổi ket_thuc_dot dua tren bảng CTE va bang moi
             if symbol_old_status == 'O':
                 ### 6, 7 ,14 là các ngành hàng , bảng kê của hàng ướt
                 date_find = datetime.datetime.now().strftime('%Y-%m-%d')
                 date_find_cte = datetime.datetime.now().strftime('%y%m')
-                if type_product_id in [6,7,14]:
+                if int(type_product_id) in [6,7,14]:
                     str_find = 'in (6, 7, 14)'
                 else:
                     str_find = 'not in (6, 7, 14)'
                 cnn_check_cte = pyodbc.connect('Driver={ODBC Driver 17 for SQL Server};Server=210.2.93.45,1433;Database=COOP_2019_V1; uid=userai;pwd=userai').cursor()
                 max_api_ktt_cte = cnn_check_cte.execute("select (MAX(api_ktt)) as ktd_number from dbo.[CTE|" + str(date_find_cte) + "] where typehd "+str_find+" and UserIdUp = N'" + str(
-                    user_id) + "' and Idcus = " + str(cus_id) + " and convert(varchar, uploaddate, 23) = '"+date_find+"' and api_ktt is not null").fetchone()
+                    user_id) + "' and Idcus = " + str(cus_id_old) + " and convert(varchar, uploaddate, 23) = '"+date_find+"' and api_ktt is not null").fetchone()
                 with connection.cursor() as cursor:
                     max_api_ktt_bill = cursor.execute("SELECT (MAX(api_ktt)) as ktd_number FROM ["+str(cus_id)+"|bill] as tb1 INNER JOIN ["+str(cus_id)+"|log_change_status] as tb2 ON \
                                             tb1.group_hd = tb2.group_hd  WHERE type_product_id "+str_find+" and old_status = 'O' and user_id = "+str(user_id)+" and convert(varchar, date_change, 23) = '"+date_find+"'  and api_ktt is not null").fetchone()
@@ -97,7 +98,9 @@ def update_status_group_bill(request):
                                         " + (', type_product_id = ' + str(type_product_id) if symbol_old_status == 'O' else '') + " \
                                         " + (', ket_thuc_dot_number = ' + str(ket_thuc_dot_number) if symbol_old_status == 'O' else '') + " \
                                         " + (', has_report = ' + str(1) if symbol_old_status == 'O' and symbol_new_status == 'S' else '') + " \
-                                     WHERE group_hd = '"+str(id_group)+"'" , [find_id_status] )
+                                        " + (', user_id_up =   '+str(request.user.id) if symbol_old_status == 'O' else '') + "    \
+                                        " + (', status_rpa =   '+"'Receiver'" if symbol_new_status=='R' else ', status_rpa = Null' if symbol_new_status=='A' else '') + " \
+                                     WHERE group_hd = '"+str(id_group)+"' " , [find_id_status] )
                         cur.execute("INSERT into ["+str(cus_id)+"|log_change_Status] (listcus_id, user_id, type, old_status, new_status, date_change, group_hd) \
                                      values (%s, %s, %s, %s, %s, getdate(), %s)", [cus_id, request.user.id, 1, symbol_old_status, symbol_new_status, id_group])
                     per_change = PermissionChangeStatus.objects.get(recent_status=symbol_new_status, role=request.user.role.id)
@@ -182,7 +185,7 @@ def upload_pdf_po(request):
                                   ,[date_change_kho]\
                                   ,[kt_comment]\
                                   ,[ttpp_comment]\
-                                  , '0‡‡‡‡5‡‡‡‡10‡‡‡‡‡‡‡‡‡‡'\
+                                  , '0‡‡‡‡5‡‡‡‡10‡‡‡‡‡‡‡‡‡‡‡'\
                                   , '††††' \
                                   ,[check_trung]\
                                   ,[is_qa]\
@@ -356,3 +359,13 @@ def get_log_to_show(request, id_cus, group, id):
             return JsonResponse({}, safe=False)
 
         return JsonResponse(context, safe=False)
+def get_log_rpa_to_show(request, id_cus, group, id):
+    if request.method == "GET":
+        with connection.cursor() as cur:
+            find_all_log_rpa = cur.execute("SELECT id,new_status,convert(varchar, date_change, 8)+', '+convert(varchar, date_change, 103) as time FROM dbo.["+id_cus+"|log_change_status] WHERE (group_hd = %s and type = 8) or (bill_id = %s and type = 9) ORDER BY date_change",[group,id]).fetchall()
+        dict_log_rpa = {}
+        list_log_rpa = []
+        for ind,i_log in enumerate(find_all_log_rpa):
+            list_log_rpa.append(list(i_log))
+        data = {'data':list_log_rpa}
+        return JsonResponse(data,safe=False)

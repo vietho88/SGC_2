@@ -279,6 +279,13 @@ class TypeLog(models.Model):
 
     def __str__(self):
         return self.type
-
+class comment_user(models.Model):
+    user_created = models.CharField(max_length=255, null=False, default='')
+    date_cretead = models.DateTimeField(auto_now_add=True)
+    group_hd = models.CharField(max_length=255)
+    comment_text = models.CharField(max_length=255)
+    type = models.IntegerField()
+    def __str__(self):
+        return self.user_created
 
 
